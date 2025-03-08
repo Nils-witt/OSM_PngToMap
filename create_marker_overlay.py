@@ -1,116 +1,126 @@
-import math
 import os
 
 import cv2
 import numpy as np
 from PIL import Image
+from PIL.Image import DecompressionBombError
+
+from utils import deg2num
+
+# Remove if you dont trust the images you are working with
+Image.MAX_IMAGE_PIXELS = None
 
 
-def deg2num(lat_deg, lon_deg, zoom):
-    lat_rad = math.radians(lat_deg)
-    n = 1 << zoom
-    x_tile = (lon_deg + 180.0) / 360.0 * n
-    y_tile = (1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n
-    return x_tile, y_tile
+def tile_empty(tile) -> bool:
+    for x in range(0, tile.width):
+        for y in range(0, tile.height):
+            if tile.getpixel((x, y)) != (0, 0, 0, 0):
+                return False
+    return True
 
 
-def main():
-    # Map Coordinates
-    pos1 = deg2num(50.74887947353795, 7.115331888198853, 17)
-    pos2 = deg2num(50.70164265976951, 7.136918306350709, 17)
-    pos3 = deg2num(50.732425421722816, 7.085624870058269, 17)
-    pos4 = deg2num(50.72491724166254, 7.151895761489869, 17)
+class GenerateTiles:
+    coordinates: list[list[float]] = []
+    picture_points: list[list[int]] = []
 
-    # Overlay Pixels
-    pos1_pic = [310, 95]  # x, y
-    pos2_pic = [4855, 2502]  # x, y
-    pos3_pic = [172, 2709]  # x, y
-    pos4_pic = [3802, 95]  # x, y
+    def __init__(self, tiles_path: str, overlay_img_path: str, zoom: int):
+        self.map_img_offsets = None
+        self.x_max = None
+        self.x_min = None
+        self.y_max = None
+        self.y_min = None
+        self.osm_tiles = None
+        self.tiles_path = tiles_path
+        self.overlay_img_path = overlay_img_path
+        self.zoom = zoom
 
-    # Compute Tiles
-    x_tiles = [int(f[0]) for f in [pos1, pos2, pos3, pos4]]
-    y_tiles = [int(f[1]) for f in [pos1, pos2, pos3, pos4]]
-    x_tiles.sort()
-    y_tiles.sort()
-    y_min = y_tiles[0]
-    y_max = y_tiles[-1]
-    x_min = x_tiles[0]
-    x_max = x_tiles[-1]
-    print(f"Tiles: {x_tiles} max: {x_max} min: {x_min}")
-    print(f"Tiles: {y_tiles} max: {y_max} min: {y_min}")
+    def create_reference_points(self):
+        # TODO: integrate browser to select points
 
-    print(
-        f"[Marker 1] Overlay [{pos1_pic[0]}, {pos1_pic[1]}] Map [{(pos1[0] - x_min) * 256}, {(pos1[1] - y_min) * 256}]")
-    print(
-        f"[Marker 2] Overlay [{pos2_pic[0]}, {pos2_pic[1]}] Map [{(pos2[0] - x_min) * 256}, {(pos2[1] - y_min) * 256}]")
-    print(
-        f"[Marker 3] Overlay [{pos3_pic[0]}, {pos3_pic[1]}] Map [{(pos3[0] - x_min) * 256}, {(pos3[1] - y_min) * 256}]")
-    print(
-        f"[Marker 4] Overlay [{pos4_pic[0]}, {pos4_pic[1]}] Map [{(pos4[0] - x_min) * 256}, {(pos4[1] - y_min) * 256}]")
+        self.coordinates: list[list[float]] = [[50.74887947353795, 7.115331888198853],
+                                               [50.70164265976951, 7.136918306350709],
+                                               [50.732425421722816, 7.085624870058269],
+                                               [50.72491724166254, 7.151895761489869]]
+        self.picture_points: list[list[int]] = [[310, 95], [4855, 2502], [172, 2709], [3802, 95]]
 
-    pos1_map_offset = [(pos1[0] - x_min) * 256, (pos1[1] - y_min) * 256]
-    pos2_map_offset = [(pos2[0] - x_min) * 256, (pos2[1] - y_min) * 256]
-    pos3_map_offset = [(pos3[0] - x_min) * 256, (pos3[1] - y_min) * 256]
-    pos4_map_offset = [(pos4[0] - x_min) * 256, (pos4[1] - y_min) * 256]
+    def prepare_coordinates_for_warp(self):
+        self.osm_tiles = [deg2num(coord[0], coord[1], self.zoom) for coord in self.coordinates]
+        # Compute Tiles
+        x_tiles = [int(f[0]) for f in self.osm_tiles]
+        y_tiles = [int(f[1]) for f in self.osm_tiles]
 
-    pts_src = np.array([pos1_pic, pos2_pic, pos3_pic, pos4_pic])
-    pts_dst = np.array([pos1_map_offset, pos2_map_offset, pos3_map_offset, pos4_map_offset])
+        x_tiles.sort()
+        y_tiles.sort()
 
-    h, status = cv2.findHomography(pts_src, pts_dst)
+        self.y_min = y_tiles[0]
+        self.y_max = y_tiles[-1]
+        self.x_min = x_tiles[0]
+        self.x_max = x_tiles[-1]
 
-    im_src = cv2.imread('input/overlayPicture.png', cv2.IMREAD_UNCHANGED)
-    im_dst = cv2.imread('out/17.png')
+        print(f"X-Tiles[{self.zoom}]: {x_tiles} max: {self.x_max} min: {self.x_min}")
+        print(f"Y-Tiles[{self.zoom}]: {y_tiles} max: {self.y_max} min: {self.y_min}")
 
-    im_out = cv2.warpPerspective(im_src, h, (im_dst.shape[1] * 2, im_dst.shape[0] * 2))
+        for (i, val) in enumerate(self.osm_tiles):
+            print(
+                f"[Marker {i + 1}][{self.zoom}] Overlay [{self.picture_points[i][0]}, {self.picture_points[i][1]}] Map [{(val[0] - self.x_min) * 256}, {(val[1] - self.y_min) * 256}]")
 
-    cv2.imwrite("out/output.png", im_out)
+        self.map_img_offsets = [(int((val[0] - self.x_min) * 256), int((val[1] - self.y_min) * 256)) for val in
+                                self.osm_tiles]
 
+        print(f"Map Image Offsets: {self.map_img_offsets}")
 
-def create_tiles():
+    def warp_image(self):
+        pts_src = np.array(self.picture_points)
+        pts_dst = np.array(self.map_img_offsets)
 
-    zoom = 17
-    pos1 = deg2num(50.74887947353795, 7.115331888198853, zoom)
-    pos2 = deg2num(50.70164265976951, 7.136918306350709, zoom)
-    pos3 = deg2num(50.732425421722816, 7.085624870058269, zoom)
-    pos4 = deg2num(50.72491724166254, 7.151895761489869, zoom)
-    print(f"pos1: {pos1}")
-    x_tiles = [int(f[0]) for f in [pos1, pos2, pos3, pos4]]
-    y_tiles = [int(f[1]) for f in [pos1, pos2, pos3, pos4]]
-    x_tiles.sort()
-    y_tiles.sort()
-    y_min = y_tiles[0]
-    y_max = y_tiles[-1]
-    x_min = x_tiles[0]
-    x_max = x_tiles[-1]
-    print(f"Tiles: {x_tiles} max: {x_max} min: {x_min}")
-    print(f"Tiles: {y_tiles} max: {y_max} min: {y_min}")
+        h, status = cv2.findHomography(pts_src, pts_dst)
+        im_src = cv2.imread(self.overlay_img_path, cv2.IMREAD_UNCHANGED)
+        im_out = cv2.warpPerspective(
+            im_src,
+            h,
+            ((self.x_max - self.x_min) * 265 * 2, (self.y_max - self.y_min) * 265 * 2)
+        )
+        os.makedirs(f"tmp", exist_ok=True)
+        cv2.imwrite(f"tmp/{self.zoom}.png", im_out)
 
-    pos1_map_offset = [(pos1[0] - x_min) * 256, (pos1[1] - y_min) * 256]
-    pos2_map_offset = [(pos2[0] - x_min) * 256, (pos2[1] - y_min) * 256]
-    pos3_map_offset = [(pos3[0] - x_min) * 256, (pos3[1] - y_min) * 256]
-    pos4_map_offset = [(pos4[0] - x_min) * 256, (pos4[1] - y_min) * 256]
+    def generate_tiles(self):
+        try:
+            src_img = Image.open(f"tmp/{self.zoom}.png")
+            src_height = src_img.height
+            src_width = src_img.width
+        except DecompressionBombError:
+            print(f"DecompressionBombError")
+            return
 
-    src_img = Image.open("out/output.png")
+        print(f"Src Image[{self.zoom}]: {src_width}, {src_height}")
+        tile_size = 256
 
-    src_height = src_img.height
-    src_width = src_img.width
+        x_offset = 0
 
-    print(f"Src Image: {src_width}, {src_height}")
+        while x_offset < (src_width / tile_size):
+            os.makedirs(f"{self.tiles_path}/{self.zoom}/{x_offset + self.x_min}", exist_ok=True)
+            y_offset = 0
+            while y_offset < (src_height / tile_size):
+                print(
+                    f"Generating Tile[{self.zoom}]: {x_offset} (of {(src_width / tile_size)}) / {y_offset} (of {(src_height / tile_size)})")
+                tile = src_img.crop((x_offset * tile_size,
+                                     y_offset * tile_size,
+                                     x_offset * tile_size + tile_size,
+                                     y_offset * tile_size + tile_size))
+                if not tile_empty(tile):
+                    tile.save(f"{self.tiles_path}/{self.zoom}/{x_offset + self.x_min}/{y_offset + self.y_min}.png")
+                y_offset += 1
 
-    x_offset = 0
+            x_offset += 1
 
-    while x_offset < (src_width /256):
-        os.makedirs(f"tiles/{zoom}/{x_offset + x_min}", exist_ok=True)
-        y_offset = 0
-        while y_offset < (src_height/256):
-            print(f"Generating Tile: {x_offset} (of {(src_width /256)}) / {y_offset} (of {(src_height /256)})")
-            tile = src_img.crop((x_offset * 256, y_offset * 256, x_offset * 256 + 256, y_offset * 256 + 256))
-            tile.save(f"tiles/{zoom}/{x_offset + x_min}/{y_offset + y_min}.png")
-            y_offset += 1
-
-        x_offset += 1
+    def run(self):
+        self.create_reference_points()
+        self.prepare_coordinates_for_warp()
+        self.warp_image()
+        self.generate_tiles()
 
 
 if __name__ == "__main__":
-    # main()
-    create_tiles()
+    for zoom in range(13, 19):
+        generator = GenerateTiles("tiles", 'input/overlayPicture.png', zoom)
+        generator.run()
