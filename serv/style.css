@@ -1,6 +1,29 @@
-html, body, #map {
+html, body {
     height: 100%;
     width: 100%;
     padding: 0;
     margin: 0;
+}
+
+#controlbox {
+    height: 2em;
+    width: 100%;
+}
+#contentContainer {
+    height: calc(100% - 2em);
+    width: 100%;
+}
+#map {
+    height: 100%;
+    width: 50%;
+    float: left;
+}
+#imageBox {
+    margin-left: 50%    ;
+    height: 100%;
+    overflow: auto;
+}
+
+#overlayPicture{
+
 }
