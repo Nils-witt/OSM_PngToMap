@@ -9,21 +9,31 @@ html, body {
     height: 2em;
     width: 100%;
 }
+
 #contentContainer {
     height: calc(100% - 2em);
     width: 100%;
 }
+
 #map {
     height: 100%;
-    width: 50%;
+    width: 40%;
     float: left;
 }
+
+#infoBox {
+    height: 100%;
+    width: 20%;
+    float: left;
+    overflow: auto;
+}
+
 #imageBox {
-    margin-left: 50%    ;
+    margin-left: 60%;
     height: 100%;
     overflow: auto;
 }
 
-#overlayPicture{
+#overlayPicture {
 
 }
