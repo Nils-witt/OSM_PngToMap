@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from PIL import Image
 from PIL.Image import DecompressionBombError
-
+import json
 from utils import deg2num
 
 # Remove if you dont trust the images you are working with
@@ -35,13 +35,11 @@ class GenerateTiles:
         self.zoom = zoom
 
     def create_reference_points(self):
-        # TODO: integrate browser to select points
-
-        self.coordinates: list[list[float]] = [[50.74887947353795, 7.115331888198853],
-                                               [50.70164265976951, 7.136918306350709],
-                                               [50.732425421722816, 7.085624870058269],
-                                               [50.72491724166254, 7.151895761489869]]
-        self.picture_points: list[list[int]] = [[310, 95], [4855, 2502], [172, 2709], [3802, 95]]
+        with open('input/markers.json') as json_data:
+            d = json.loads(json_data.read())
+            json_data.close()
+            self.coordinates: list[list[float]] = [[d[f]['map']['lat'],d[f]['map']['lng']] for f in d]
+            self.picture_points: list[list[int]] = [[d[f]['overlay']['x'],d[f]['overlay']['y']] for f in d]
 
     def prepare_coordinates_for_warp(self):
         self.osm_tiles = [deg2num(coord[0], coord[1], self.zoom) for coord in self.coordinates]
@@ -70,6 +68,12 @@ class GenerateTiles:
         print(f"Map Image Offsets: {self.map_img_offsets}")
 
     def warp_image(self):
+        if len(self.picture_points) < 4:
+            print("Not enough points to warp image")
+            return
+        if len(self.map_img_offsets)  < 4:
+            print("Not enough points to warp image")
+            return
         pts_src = np.array(self.picture_points)
         pts_dst = np.array(self.map_img_offsets)
 
