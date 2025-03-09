@@ -17,12 +17,10 @@ class Serv(BaseHTTPRequestHandler):
         else:
             self.path = '/serv' + self.path
         try:
-            print(self.path[1:])
             with open(self.path[1:], 'rb') as content:
                 self.send_response(200)
                 self.end_headers()
                 shutil.copyfileobj(content, self.wfile)
-            #file_to_open = open(self.path[1:]).read()
 
         except:
             file_to_open = "File not found"
@@ -33,4 +31,3 @@ class Serv(BaseHTTPRequestHandler):
 
 httpd = HTTPServer(('localhost', 8080), Serv)
 httpd.serve_forever()
-httpd.shutdown()
