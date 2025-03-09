@@ -1,5 +1,4 @@
 import os.path
-from os import listdir
 
 from PIL import Image
 
@@ -8,17 +7,8 @@ def main():
     zoom = 17
     mypath = "basemap/" + str(zoom)
     x_values = [68115, 68134]
-    y_values = [44024,44052]
-    '''
-    for dir_name in listdir(mypath):
-        x_values.append(int(dir_name))
-        for file_name in listdir(mypath + "/" + dir_name):
-            val = int(file_name.split(".")[0])
-            if not val in y_values:
-                y_values.append(val)
-    x_values.sort()
-    y_values.sort()
-    '''
+    y_values = [44024, 44052]
+
     print(f"Bounds: {x_values[0]}, {x_values[-1]}, {y_values[0]}, {y_values[-1]}")
 
     x = x_values[-1] - x_values[0] + 1

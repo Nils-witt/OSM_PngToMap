@@ -1,4 +1,4 @@
-/tiles
-/tmp
-/out
-/input
+/src/tiles/*
+/src/tmp/*
+/src/out/*
+/src/input/*
