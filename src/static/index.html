@@ -10,30 +10,30 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="static/style.css">
 </head>
 
 <body>
-<div id="controlbox">
-    <button id="saveBtn">Download Config</button>
-    <button id="testBtn">Test</button>
-</div>
 
 <div style="width: 100%; overflow: hidden;" id="contentContainer">
     <div id="map"></div>
     <div id="infoBox">
         <h2>Makers</h2>
+        <button id="testBtn">Save</button>
         <table id="makertable"></table>
+
+        <form action="/overlayPicture" method="post" enctype="multipart/form-data">
+            <input type="file" name="overlayPicture" id="file" accept="image/png">
+            <input type="submit" value="Upload Image" name="submit">
     </div>
     <div id="imageBox">
-        <img src="/overlayPicture.png" id="overlayPicture"/>
-        <img style="position: absolute;" id="overlayMarker"
-             src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png"/>
+        <img src="/overlayPicture" id="overlayPicture"/>
+        <img style="position: absolute;" id="overlayMarker" src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png"/>
     </div>
 </div>
 
 </body>
-<script src="main.js">
+<script src="static/main.js">
 
 </script>
 </html>

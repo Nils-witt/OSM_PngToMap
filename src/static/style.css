@@ -4,14 +4,8 @@ html, body {
     padding: 0;
     margin: 0;
 }
-
-#controlbox {
-    height: 2em;
-    width: 100%;
-}
-
 #contentContainer {
-    height: calc(100% - 2em);
+    height: 100%;
     width: 100%;
 }
 

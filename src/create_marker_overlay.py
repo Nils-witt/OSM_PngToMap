@@ -1,10 +1,11 @@
+import json
 import os
 
 import cv2
 import numpy as np
 from PIL import Image
 from PIL.Image import DecompressionBombError
-import json
+
 from utils import deg2num
 
 # Remove if you dont trust the images you are working with
@@ -35,11 +36,11 @@ class GenerateTiles:
         self.zoom = zoom
 
     def create_reference_points(self):
-        with open('input/markers.json') as json_data:
+        with open('tmp/markers.json') as json_data:
             d = json.loads(json_data.read())
             json_data.close()
-            self.coordinates: list[list[float]] = [[d[f]['map']['lat'],d[f]['map']['lng']] for f in d]
-            self.picture_points: list[list[int]] = [[d[f]['overlay']['x'],d[f]['overlay']['y']] for f in d]
+            self.coordinates: list[list[float]] = [[d[f]['map']['lat'], d[f]['map']['lng']] for f in d]
+            self.picture_points: list[list[int]] = [[d[f]['overlay']['x'], d[f]['overlay']['y']] for f in d]
 
     def prepare_coordinates_for_warp(self):
         self.osm_tiles = [deg2num(coord[0], coord[1], self.zoom) for coord in self.coordinates]
@@ -71,7 +72,7 @@ class GenerateTiles:
         if len(self.picture_points) < 4:
             print("Not enough points to warp image")
             return
-        if len(self.map_img_offsets)  < 4:
+        if len(self.map_img_offsets) < 4:
             print("Not enough points to warp image")
             return
         pts_src = np.array(self.picture_points)
@@ -125,6 +126,6 @@ class GenerateTiles:
 
 
 if __name__ == "__main__":
-    for zoom in range(13, 19):
-        generator = GenerateTiles("tiles", 'input/overlayPicture.png', zoom)
+    for zoom in range(19, 21):
+        generator = GenerateTiles("tiles", 'tmp/overlayPicture.png', zoom)
         generator.run()
