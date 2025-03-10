@@ -1,16 +1,19 @@
 import json
+import os
 
 from flask import Flask, send_file, request, redirect
 
-app = Flask(__name__)
+os.makedirs("tmp", exist_ok=True)
+
+application = Flask(__name__)
 
 
-@app.route("/")
+@application.route("/")
 def main():
     return send_file("static/index.html")
 
 
-@app.route("/overlayPicture", methods=["GET", "POST"])
+@application.route("/overlayPicture", methods=["GET", "POST"])
 def overlay_picture():
     if request.method == "GET":
         return send_file("tmp/overlayPicture.png")
@@ -21,8 +24,7 @@ def overlay_picture():
         return redirect('/')
 
 
-
-@app.route("/markers", methods=["GET", "POST"])
+@application.route("/markers", methods=["GET", "POST"])
 def markers():
     if request.method == 'POST':
         data = request.json
