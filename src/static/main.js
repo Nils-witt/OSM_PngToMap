@@ -36,7 +36,7 @@ map.setMaxZoom(20);
 map.setMinZoom(10);
 
 // Replace with your Baselayer map URL to ensure correct alignment
-L.tileLayer('https://map.nilswitt.dev/map/basemap/{z}/{x}/{y}.png').addTo(map);
+L.tileLayer('https://sgx.geodatenzentrum.de/wmts_basemapde/tile/1.0.0/de_basemapde_web_raster_farbe/default/GLOBAL_WEBMERCATOR/{z}/{y}/{x}.png').addTo(map);
 L.tileLayer('/tiles/{z}/{x}/{y}').addTo(map);
 
 var mapMaker = L.marker([50.703546, 7.127326], {draggable: true, title: "Marker"});
