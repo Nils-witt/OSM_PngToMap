@@ -13,14 +13,14 @@ function sendToServer() {
         redirect: "follow"
     };
 
-    fetch("http://127.0.0.1:5000/markers", requestOptions)
+    fetch("/markers", requestOptions)
         .then((response) => response.text())
         .then((result) => console.log(result))
         .catch((error) => console.error(error));
 }
 
 function loadMarkers() {
-    fetch("http://127.0.0.1:5000/markers")
+    fetch("/markers")
         .then((response) => response.json())
         .then((result) => {
             markers = result;
@@ -43,6 +43,7 @@ map.setMinZoom(10);
 
 // Replace with your Baselayer map URL to ensure correct alignment
 L.tileLayer('https://map.nilswitt.dev/map/basemap/{z}/{x}/{y}.png').addTo(map);
+L.tileLayer('/tiles/{z}/{x}/{y}').addTo(map);
 
 var mapMaker = L.marker([50.703546, 7.127326], {draggable: true, title: "Marker"});
 var overlayMarkerPos = {x: 0, y: 0};

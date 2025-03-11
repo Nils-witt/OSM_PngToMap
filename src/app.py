@@ -1,7 +1,11 @@
 import json
 import os
+import shutil
+import threading
 
-from flask import Flask, send_file, request, redirect
+from flask import Flask, send_file, request, redirect, Response
+
+from create_marker_overlay import GenerateTiles
 
 os.makedirs("tmp", exist_ok=True)
 
@@ -17,7 +21,6 @@ def main():
 def overlay_picture():
     if request.method == "GET":
         return send_file("tmp/overlayPicture.png")
-
     if request.method == "POST":
         f = request.files['overlayPicture']
         f.save("tmp/overlayPicture.png")
@@ -33,3 +36,46 @@ def markers():
         return "ok"
     if request.method == 'GET':
         return send_file("tmp/markers.json")
+
+
+@application.route("/tiles", methods=["GET"])
+def tiles():
+    dirs = [f for f in os.listdir("tmp/tiles") if os.path.isdir(os.path.join("tmp/tiles", f))]
+    data = {}
+    for d in dirs:
+        data[d] = {}
+        for x in os.listdir(os.path.join("tmp/tiles", d)):
+            data[d][x] = os.listdir(os.path.join("tmp/tiles", d, x))
+    return json.dumps(data)
+
+
+@application.route("/tiles/<int:z>/<int:x>/<int:y>", methods=["GET"])
+def tile(z, x, y):
+    if os.path.isfile(f"tmp/tiles/{z}/{x}/{y}.png"):
+        return send_file(f"tmp/tiles/{z}/{x}/{y}.png")
+    return Response("{'status':'Not found'}", status=404, mimetype='application/json')
+
+
+def tilegen_thread():
+    if os.path.isfile(f"tmp/tile.log"):
+        os.remove("tmp/tile.log")
+
+    for zoom in range(10, 18):
+        generator = GenerateTiles("tmp/tiles", 'tmp/overlayPicture.png', zoom)
+        generator.run()
+
+@application.route("/generate_tiles", methods=["GET"])
+def generate_tiles():
+    threading.Thread(target=tilegen_thread,).start()
+    return redirect("/")
+
+@application.route("/tilelog", methods=["GET"])
+def tile_log():
+    if os.path.isfile(f"tmp/tile.log"):
+        return send_file(f"tmp/tile.log")
+    return send_file(f"tmp/tile.log")
+
+@application.route("/download_tiles", methods=["GET"])
+def download_tiles():
+    shutil.make_archive("tmp/tiles_zip", 'zip', "tmp/tiles/")
+    return send_file("tmp/tiles_zip.zip")
