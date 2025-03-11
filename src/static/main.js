@@ -12,11 +12,6 @@ function sendToServer() {
         body: raw,
         redirect: "follow"
     };
-
-    fetch("/markers", requestOptions)
-        .then((response) => response.text())
-        .then((result) => console.log(result))
-        .catch((error) => console.error(error));
 }
 
 function loadMarkers() {
@@ -25,7 +20,6 @@ function loadMarkers() {
         .then((result) => {
             markers = result;
             for (let i = 0; i < 4; i++) {
-                console.log(markers[i]);
                 document.getElementById('map-pos-' + i).textContent = markers[i].map.lat.toFixed(4) + ", " + markers[i].map.lng.toFixed(4);
                 document.getElementById('overlay-pos-' + i).textContent = markers[i].overlay.x + ", " + markers[i].overlay.y;
             }

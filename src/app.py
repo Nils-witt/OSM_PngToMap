@@ -64,16 +64,19 @@ def tilegen_thread():
         generator = GenerateTiles("tmp/tiles", 'tmp/overlayPicture.png', zoom)
         generator.run()
 
+
 @application.route("/generate_tiles", methods=["GET"])
 def generate_tiles():
-    threading.Thread(target=tilegen_thread,).start()
+    threading.Thread(target=tilegen_thread, ).start()
     return redirect("/")
+
 
 @application.route("/tilelog", methods=["GET"])
 def tile_log():
     if os.path.isfile(f"tmp/tile.log"):
         return send_file(f"tmp/tile.log")
     return send_file(f"tmp/tile.log")
+
 
 @application.route("/download_tiles", methods=["GET"])
 def download_tiles():
