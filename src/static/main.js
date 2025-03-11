@@ -12,6 +12,7 @@ function sendToServer() {
         body: raw,
         redirect: "follow"
     };
+    fetch("/markers", requestOptions).then(response => response.text()).then(text => console.log(text));
 }
 
 function loadMarkers() {
@@ -145,4 +146,4 @@ document.addEventListener('DOMContentLoaded', () => {
     updateOverlayMarker();
 });
 
-document.getElementById('testBtn').addEventListener('click', sendToServer);
+document.getElementById('saveMarkersBtn').addEventListener('click', sendToServer);
