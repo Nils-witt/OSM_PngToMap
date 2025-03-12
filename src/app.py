@@ -20,6 +20,8 @@ def main():
 @application.route("/overlayPicture", methods=["GET", "POST"])
 def overlay_picture():
     if request.method == "GET":
+        if not os.path.isfile("tmp/overlayPicture.png"):
+            return "No overlay picture"
         return send_file("tmp/overlayPicture.png")
     if request.method == "POST":
         f = request.files['overlayPicture']
@@ -75,7 +77,7 @@ def generate_tiles():
 def tile_log():
     if os.path.isfile(f"tmp/tile.log"):
         return send_file(f"tmp/tile.log")
-    return send_file(f"tmp/tile.log")
+    return "No log file"
 
 
 @application.route("/download_tiles", methods=["GET"])
