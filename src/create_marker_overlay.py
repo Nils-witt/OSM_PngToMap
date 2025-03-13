@@ -25,7 +25,7 @@ class GenerateTiles:
     coordinates: list[list[float]] = []
     picture_points: list[list[int]] = []
 
-    def __init__(self, tiles_path: str, overlay_img_path: str, zoom: int):
+    def __init__(self, tiles_path: str, overlay_img_path: str):
         self.map_img_offsets = None
         self.x_max = None
         self.x_min = None
@@ -34,16 +34,18 @@ class GenerateTiles:
         self.osm_tiles = None
         self.tiles_path = tiles_path
         self.overlay_img_path = overlay_img_path
-        self.zoom = zoom
+        self.zooms = []
         self.logger = logging.getLogger(__name__)
         logging.basicConfig(filename='tmp/tile.log', level=logging.INFO)
 
     def create_reference_points(self):
-        with open('tmp/markers.json') as json_data:
+        with open('tmp/config.json') as json_data:
             d = json.loads(json_data.read())
             json_data.close()
-            self.coordinates: list[list[float]] = [[d[f]['map']['lat'], d[f]['map']['lng']] for f in d]
-            self.picture_points: list[list[int]] = [[d[f]['overlay']['x'], d[f]['overlay']['y']] for f in d]
+            markers = d['markers']
+            self.zooms = range(d['minZoom'],d['maxZoom'] + 1)
+            self.coordinates: list[list[float]] = [[markers[f]['map']['lat'], markers[f]['map']['lng']] for f in d]
+            self.picture_points: list[list[int]] = [[markers[f]['overlay']['x'], markers[f]['overlay']['y']] for f in d]
 
     def prepare_coordinates_for_warp(self):
         self.osm_tiles = [deg2num(coord[0], coord[1], self.zoom) for coord in self.coordinates]
@@ -133,6 +135,5 @@ class GenerateTiles:
 
 
 if __name__ == "__main__":
-    for zoom in range(19, 21):
-        generator = GenerateTiles("tiles", 'tmp/overlayPicture.png', zoom)
-        generator.run()
+    generator = GenerateTiles("tiles", 'tmp/overlayPicture.png')
+    generator.run()

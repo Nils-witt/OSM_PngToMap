@@ -1,10 +1,16 @@
 // Section: Api
 
+var config = {
+    "markers": {},
+    "minZoom": 10,
+    "maxZoom": 20,
+};
+
 function sendToServer() {
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
 
-    const raw = JSON.stringify(markers);
+    const raw = JSON.stringify(config);
 
     const requestOptions = {
         method: "POST",
@@ -12,23 +18,27 @@ function sendToServer() {
         body: raw,
         redirect: "follow"
     };
-    fetch("/markers", requestOptions).then(response => response.text()).then(text => console.log(text));
+    fetch("/config", requestOptions).then(response => response.text()).then(text => console.log(text));
 }
 
 function loadMarkers() {
-    fetch("/markers")
+    fetch("/config")
         .then((response) => response.json())
         .then((result) => {
-            markers = result;
+            config = result;
             for (let i = 0; i < 4; i++) {
-                document.getElementById('map-pos-' + i).textContent = markers[i].map.lat.toFixed(4) + ", " + markers[i].map.lng.toFixed(4);
-                document.getElementById('overlay-pos-' + i).textContent = markers[i].overlay.x + ", " + markers[i].overlay.y;
+                try {
+                    document.getElementById('map-pos-' + i).textContent = config.markers[i].map.lat.toFixed(4) + ", " + config.markers[i].map.lng.toFixed(4);
+                    document.getElementById('overlay-pos-' + i).textContent = config.markers[i].overlay.x + ", " + config.markers[i].overlay.y;
+                } catch (e) {
+
+                }
             }
+            document.getElementById('inputMinZoom').value = config.minZoom;
+            document.getElementById('inputMaxZoom').value = config.maxZoom;
 
         })
         .catch((error) => console.error(error));
-
-
 }
 
 
@@ -42,12 +52,11 @@ L.tileLayer('/tiles/{z}/{x}/{y}').addTo(map);
 
 var mapMaker = L.marker([50.703546, 7.127326], {draggable: true, title: "Marker"});
 var overlayMarkerPos = {x: 0, y: 0};
-var markers = {};
 var overlayMarker = document.getElementById('overlayMarker');
 
 
 function selectMarker(id) {
-    let marker = markers[id];
+    let marker = config.markers[id];
     if (marker.map.lat != null && marker.map.lng != null) {
         mapMaker.setLatLng([marker.map.lat, marker.map.lng]);
         map.setView([marker.map.lat, marker.map.lng], 15);
@@ -66,11 +75,11 @@ function selectMarker(id) {
 }
 
 function savePosition(id) {
-    markers[id].map = {
+    config.markers[id].map = {
         lat: mapMaker.getLatLng().lat,
         lng: mapMaker.getLatLng().lng
     };
-    markers[id].overlay = {
+    config.markers[id].overlay = {
         x: overlayMarkerPos.x,
         y: overlayMarkerPos.y
     };
@@ -82,7 +91,7 @@ function setUpUI() {
     let table = document.getElementById('makertable');
 
     for (let i = 0; i < 4; i++) {
-        markers[i] = {
+        config.markers[i] = {
             map: {
                 lat: null,
                 lng: null

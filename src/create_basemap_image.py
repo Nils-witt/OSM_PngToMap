@@ -31,7 +31,6 @@ def main():
 
         print(f"Bounds: {x_values[0]}, {x_values[-1]}, {y_values[0]}, {y_values[-1]}")
 
-
         x = x_values[-1] - x_values[0] + 1
         y = y_values[-1] - y_values[0] + 1
 

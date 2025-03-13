@@ -29,15 +29,15 @@ def overlay_picture():
         return redirect('/')
 
 
-@application.route("/markers", methods=["GET", "POST"])
-def markers():
+@application.route("/config", methods=["GET", "POST"])
+def config():
     if request.method == 'POST':
         data = request.json
-        with open("tmp/markers.json", "w") as f:
+        with open("tmp/config.json", "w") as f:
             f.write(json.dumps(data))
         return "ok"
     if request.method == 'GET':
-        return send_file("tmp/markers.json")
+        return send_file("tmp/config.json")
 
 
 @application.route("/tiles", methods=["GET"])
