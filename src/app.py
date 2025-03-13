@@ -62,9 +62,8 @@ def tilegen_thread():
     if os.path.isfile(f"tmp/tile.log"):
         os.remove("tmp/tile.log")
 
-    for zoom in range(10, 18):
-        generator = GenerateTiles("tmp/tiles", 'tmp/overlayPicture.png', zoom)
-        generator.run()
+    generator = GenerateTiles("tmp/tiles", 'tmp/overlayPicture.png')
+    generator.run()
 
 
 @application.route("/generate_tiles", methods=["GET"])
