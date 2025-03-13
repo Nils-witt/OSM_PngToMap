@@ -62,8 +62,14 @@ def tilegen_thread():
     if os.path.isfile(f"tmp/tile.log"):
         os.remove("tmp/tile.log")
 
-    generator = GenerateTiles("tmp/tiles", 'tmp/overlayPicture.png')
-    generator.run()
+    with open('tmp/config.json') as json_data:
+        d = json.loads(json_data.read())
+        json_data.close()
+        zooms = range(d['minZoom'], d['maxZoom'] + 1)
+        for zoom in zooms:
+            generator = GenerateTiles("tmp/tiles", 'tmp/overlayPicture.png', zoom=zoom)
+            #generator.create_reference_points()
+            generator.run()
 
 
 @application.route("/generate_tiles", methods=["GET"])
