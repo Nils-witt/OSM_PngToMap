@@ -43,10 +43,8 @@ class GenerateTiles:
             d = json.loads(json_data.read())
             json_data.close()
             markers = d['markers']
-            for name in markers:
-                marker = markers[name]
-                self.coordinates: list[list[float]] = [[marker['map']['lat'], marker['map']['lng']] for f in d]
-                self.picture_points: list[list[int]] = [[marker['overlay']['x'], marker['overlay']['y']] for f in d]
+            self.coordinates: list[list[float]] = [[markers[f]['map']['lat'], markers[f]['map']['lng']] for f in markers]
+            self.picture_points: list[list[int]] = [[markers[f]['overlay']['x'], markers[f]['overlay']['y']] for f in markers]
 
     def prepare_coordinates_for_warp(self):
         self.osm_tiles = [deg2num(coord[0], coord[1], self.zoom) for coord in self.coordinates]
