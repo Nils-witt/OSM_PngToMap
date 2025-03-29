@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import shutil
 import threading
@@ -15,6 +16,11 @@ application = Flask(__name__)
 @application.route("/")
 def main():
     return send_file("static/index.html")
+
+
+@application.route("/map")
+def map():
+    return send_file("static/map.html")
 
 
 @application.route("/overlayPicture", methods=["GET", "POST"])
@@ -61,14 +67,17 @@ def tile(z, x, y):
 def tilegen_thread():
     if os.path.isfile(f"tmp/tile.log"):
         os.remove("tmp/tile.log")
+    logger = logging.getLogger(__name__)
+    logger.addHandler(logging.StreamHandler())
+    logging.basicConfig(filename='tmp/tile.log', level=logging.INFO)
 
     with open('tmp/config.json') as json_data:
         d = json.loads(json_data.read())
         json_data.close()
         zooms = range(d['minZoom'], d['maxZoom'] + 1)
         for zoom in zooms:
-            generator = GenerateTiles("tmp/tiles", 'tmp/overlayPicture.png', zoom=zoom)
-            #generator.create_reference_points()
+            print("Generating tiles for zoom", zoom)
+            generator = GenerateTiles("tmp/tiles", 'tmp/overlayPicture.png', zoom=zoom, logger=logger)
             generator.run()
 
 

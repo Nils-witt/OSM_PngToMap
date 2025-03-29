@@ -43,12 +43,18 @@ function loadMarkers() {
 
 
 var map = L.map('map').setView([50.703546, 7.127326], 14);
-map.setMaxZoom(20);
+map.setMaxZoom(22);
 map.setMinZoom(10);
 
 // Replace with your Baselayer map URL to ensure correct alignment
-L.tileLayer('https://sgx.geodatenzentrum.de/wmts_basemapde/tile/1.0.0/de_basemapde_web_raster_farbe/default/GLOBAL_WEBMERCATOR/{z}/{y}/{x}.png').addTo(map);
-L.tileLayer('/tiles/{z}/{x}/{y}').addTo(map);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    minZoom: 10,
+    maxZoom: 22,
+}).addTo(map);
+L.tileLayer('/tiles/{z}/{x}/{y}',{
+    minZoom: 10,
+    maxZoom: 22,
+}).addTo(map);
 
 var mapMaker = L.marker([50.703546, 7.127326], {draggable: true, title: "Marker"});
 var overlayMarkerPos = {x: 0, y: 0};
