@@ -1,6 +1,8 @@
 import json
 import os.path
+from io import BytesIO
 
+import requests
 from PIL import Image
 
 from utils import deg2num
@@ -47,6 +49,29 @@ def generate(data, zoom):
                 print(f"Could not find {x_val}, {y_val}")
 
     new_im.save(f'tmp/basemap_{zoom}.png')
+
+
+def generate_osm_png(tile_url: str, x_min: int, x_max: int, y_min: int, y_max: int, zoom: int) -> Image:
+    # Generate the OSM PNG file using the tile_url and the specified bounds
+    # This function should implement the logic to download and save the PNG file
+    width = x_max - x_min + 1
+    height = y_max - y_min + 1
+
+    new_im = Image.new('RGBA', (width * 256, height * 256))
+    if zoom > 19:
+        return new_im
+    for i in range(0, width):
+        for j in range(0, height):
+            try:
+                url = tile_url.replace("{z}", str(zoom)).replace("{x}", str(i + x_min)).replace("{y}", str(j + y_min))
+                print(f"Downloading tile from {url}")
+                response = requests.get(url)
+                img = Image.open(BytesIO(response.content))
+                img = img.convert('RGBA')
+                new_im.paste(img, [i * 256, j * 256, (i + 1) * 256, (j + 1) * 256])
+            except:
+                print(f"Could not find {i}, {j}")
+    return new_im
 
 
 def main():

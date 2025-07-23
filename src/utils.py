@@ -1,5 +1,3 @@
-import multiprocessing
-
 import math
 from PIL import Image
 

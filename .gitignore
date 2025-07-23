@@ -2,3 +2,6 @@
 /src/tmp/*
 /src/out/*
 /src/input/*
+/data
+/webclient/node_modules/
+/.venv/

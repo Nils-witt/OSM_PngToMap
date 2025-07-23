@@ -1,5 +1,4 @@
-import json
-import logging
+import multiprocessing
 import os
 
 import cv2
@@ -7,6 +6,7 @@ import numpy as np
 from PIL import Image
 from PIL.Image import DecompressionBombError
 
+from create_basemap_image import generate_osm_png
 from utils import deg2num, find_x_bounds, find_y_bounds, tile_empty
 
 # Remove if you dont trust the images you are working with
@@ -21,7 +21,7 @@ class GenerateTiles:
             self,
             tiles_path: str,
             overlay_img_path: str,
-            config_path: str,
+            markers: {},
             zoom: int,
             logger=None,
             tmp_dir: str = "tmp/"
@@ -36,22 +36,18 @@ class GenerateTiles:
         self.overlay_img_path = overlay_img_path
         self.zoom = zoom
         self.logger = logger
-        self.config_path = config_path
+        self.markers = markers
         self.tmp_dir = tmp_dir
 
     def create_reference_points(self):
-        with open(self.config_path) as json_data:
-            d = json.loads(json_data.read())
-            json_data.close()
-            markers = d['markers']
-            self.coordinates: list[list[float]] = [[markers[f]['map']['lat'], markers[f]['map']['lng']] for f in
-                                                   markers]
-            for coord in self.coordinates:
-                print("loaded coordinate", coord)
-            self.picture_points: list[list[int]] = [[markers[f]['overlay']['x'], markers[f]['overlay']['y']] for f in
-                                                    markers]
-            for point in self.picture_points:
-                print("Loaded picture point", point)
+        self.coordinates: list[list[float]] = [[self.markers[f]['map']['lat'], self.markers[f]['map']['lng']] for f in
+                                               self.markers]
+        for coord in self.coordinates:
+            print("loaded coordinate", coord)
+        self.picture_points: list[list[int]] = [[self.markers[f]['overlay']['x'], self.markers[f]['overlay']['y']] for f
+                                                in self.markers]
+        for point in self.picture_points:
+            print("Loaded picture point", point)
 
     def prepare_coordinates_for_warp(self):
         self.osm_tiles = [deg2num(coord[0], coord[1], self.zoom) for coord in self.coordinates]
@@ -107,18 +103,62 @@ class GenerateTiles:
             h,
             target_pic_size
         )
-
+        del im_src
         cv2.imwrite(f"{self.tmp_dir}/overlay_{self.zoom}.png", im_out)
-
+        del im_out
     def crop_image(self):
+        self.logger.info("Cropping image")
         if os.path.exists(f"{self.tmp_dir}/overlay_{self.zoom}_crop.png"):
             self.logger.info("Skipping crop, already exists")
             return
         src_img = Image.open(f"{self.tmp_dir}/overlay_{self.zoom}.png")
         lower_y = find_y_bounds(src_img)
+        print("YL:",lower_y)
         right_x = find_x_bounds(src_img)
+        print("XR:", right_x)
         cropped = src_img.crop((0, 0, right_x, lower_y))
         cropped.save(f"{self.tmp_dir}/overlay_{self.zoom}_crop.png")
+        del cropped
+        self.logger.info("Copping image done")
+
+    def createRef(self):
+        self.logger.info("Creating Ref")
+        img = Image.open(f"{self.tmp_dir}/overlay_{self.zoom}_crop.png")
+        if not os.path.exists(f"{self.tmp_dir}/overlay_{self.zoom}_ref.png"):
+            tile_url = "https://sgx.geodatenzentrum.de/wmts_basemapde/tile/1.0.0/de_basemapde_web_raster_farbe/default/GLOBAL_WEBMERCATOR/{z}/{y}/{x}.png"
+            ref = generate_osm_png(tile_url, self.x_min, self.x_max, self.y_min, self.y_max, self.zoom)
+            ref.save(f"{self.tmp_dir}/overlay_{self.zoom}_ref.png")
+        else:
+            ref = Image.open(f"{self.tmp_dir}/overlay_{self.zoom}_ref.png")
+        ref.paste(img,(0,0),img)
+        ref.save(f"{self.tmp_dir}/overlay_{self.zoom}_wb.png")
+        self.logger.info("Creating Ref done")
+
+    def tile_worker(self,img: Image, x_offset:int , y_offset:int , save_path:str):
+        tile_size = 256
+        tile = img.crop((x_offset * tile_size,
+                             y_offset * tile_size,
+                             x_offset * tile_size + tile_size,
+                             y_offset * tile_size + tile_size))
+        if not tile_empty(tile):
+            tile.save(save_path)
+
+    def tile_x_worker(self,img:Image, x_offset:int):
+        tile_size = 256
+        current_x_dir: str = f"{self.tiles_path}/{self.zoom}/{x_offset + self.x_min}"
+        os.makedirs(current_x_dir, exist_ok=True)
+        y_offset = 0
+        while y_offset < (img.height / tile_size):
+            self.logger.info(
+                f"Generating Tile[{self.zoom}]: {x_offset} (of {(img.width / tile_size)}) / {y_offset} (of {(img.height / tile_size)})")
+            self.tile_worker(img, x_offset, y_offset, f"{current_x_dir}/{y_offset + self.y_min}.png")
+            y_offset += 1
+        if len(os.listdir(current_x_dir)) == 0:
+            os.rmdir(current_x_dir)
+
+    def tile_x_queues_worker(self, img: Image,queue: list[int]):
+        for i in queue:
+            self.tile_x_worker(img, i)
 
     def generate_tiles(self):
         try:
@@ -131,26 +171,32 @@ class GenerateTiles:
 
         self.logger.info(f"Src Image[{self.zoom}]: {src_width}, {src_height}")
         tile_size = 256
+        cores = multiprocessing.cpu_count() - 1
+        cores = 2
+        self.logger.info(f"Using {cores} cores")
+
+        queues = {}
+        for i in range(cores):
+            queues[i] = []
 
         x_offset = 0
-
         while x_offset < (src_width / tile_size):
-            current_x_dir: str = f"{self.tiles_path}/{self.zoom}/{x_offset + self.x_min}"
-            os.makedirs(current_x_dir, exist_ok=True)
-            y_offset = 0
-            while y_offset < (src_height / tile_size):
-                self.logger.info(
-                    f"Generating Tile[{self.zoom}]: {x_offset} (of {(src_width / tile_size)}) / {y_offset} (of {(src_height / tile_size)})")
-                tile = src_img.crop((x_offset * tile_size,
-                                     y_offset * tile_size,
-                                     x_offset * tile_size + tile_size,
-                                     y_offset * tile_size + tile_size))
-                if not tile_empty(tile):
-                    tile.save(f"{current_x_dir}/{y_offset + self.y_min}.png")
-                y_offset += 1
-            if len(os.listdir(current_x_dir)) == 0:
-                os.rmdir(current_x_dir)
+            queues[x_offset % cores].append(x_offset)
             x_offset += 1
+
+        print(queues)
+
+        for i in range(cores):
+            # p = multiprocessing.Process(target=self.tile_x_queues_worker, args=(src_img, queues[i]))
+            print(f"Starting process {i}")
+            #p.start()
+            self.tile_x_queues_worker(src_img, queues[i])
+
+        for i in range(cores):
+            #p.join()
+            pass
+
+        print("Done alle")
 
     def run(self):
         self.logger.info("Starting")
