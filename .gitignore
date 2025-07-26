@@ -5,3 +5,4 @@
 /data
 /webclient/node_modules/
 /.venv/
+/webclient/dist
