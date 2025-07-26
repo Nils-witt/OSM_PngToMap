@@ -20,7 +20,5 @@
     "erasableSyntaxOnly": false,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": false,
-    "rootDir": "./src",
   },
-
 }
