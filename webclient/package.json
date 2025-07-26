@@ -10,6 +10,7 @@
     "start": "tsc && vite build && vite preview"
   },
   "devDependencies": {
+    "@types/wicg-file-system-access": "^2023.10.6",
     "typescript": "~5.8.3",
     "vite": "^6.3.5"
   },

@@ -1,5 +1,5 @@
 import {Map as MapLibreMap} from 'maplibre-gl';
-import imgUrl from './plan.png'
+
 import Panzoom from '@panzoom/panzoom'
 
 import {ImageControls} from "./ImageControls.ts";
@@ -21,20 +21,24 @@ const imgHalf: HTMLDivElement = document.getElementById('imgHalf')! as HTMLDivEl
 
 const map = new MapLibreMap({
     container: 'map',                                           // HTML element ID where the map will be rendered
-    style: 'http://127.0.0.1:8080/styles/osm-liberty/style.json', // Base map style URL
+    style: 'https://map.nils-witt.de/vector/styles/maptiler-basic/style.json', // Base map style URL
     center: [7.1532, 50.7427],                                      // Initial center of the map
     zoom: 15,                                         // Initial zoom level
 });
 
 new MapController(map); // Initialize the MapController with the map instance
-new ImageController(imageBox);
+const imageController = new ImageController(imageBox);
 
 new ContextMenu(map, imgImage);
 new DownloadController();
-
+/*
 if (imgImage) {
     imgImage.src = imgUrl; // Set the source of the image element to the imported image URL
 }
+*/
+
+
+
 
 if (imageBox && imgHalf) {
     const panzoom = Panzoom(imageBox, {
@@ -49,3 +53,5 @@ if (imageBox && imgHalf) {
 
     imgHalf.appendChild(controls);
 }
+
+imageController.showImageOpen();
