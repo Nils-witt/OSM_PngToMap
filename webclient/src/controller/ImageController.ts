@@ -23,8 +23,7 @@ export class ImageController {
         this.imageBox.appendChild(marker.markerIcon);
 
         DataProvider.getInstance().addListener(`imgCoordsUpdated-${id}`, (data) => {
-            marker.markerIcon.style.top = data.coords[1] + 'px';
-            marker.markerIcon.style.left = data.coords[0] + 'px';
+            marker.setPosition(data.coords[0], data.coords[1]);
         });
     }
 }

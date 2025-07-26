@@ -42,6 +42,12 @@ export class DataProvider {
         this.notifyListeners('mapCoordsUpdated', {id, coords});
         this.notifyListeners(`mapCoordsUpdated-${id}`, {id, coords});
     }
+    public getMapCoords(id: number): LngLat | undefined {
+        return this.mapCoords.get(id);
+    }
+    public getAllMapCoords(): Map<number, LngLat> {
+        return new Map(this.mapCoords);
+    }
 
     public setImgCoords(id: number, coords: [number, number]): void {
         this.imgCoords.set(id, coords);
@@ -49,6 +55,12 @@ export class DataProvider {
         this.notifyListeners(`imgCoordsUpdated-${id}`, {id, coords});
     }
 
+    public getImgCoords(id: number): [number, number] | undefined {
+        return this.imgCoords.get(id);
+    }
+    public getAllImgCoords(): Map<number, [number, number]> {
+        return new Map(this.imgCoords);
+    }
 
     public fireEvent(event: string, data: any): void {
         if (this.listeners.has(event)) {

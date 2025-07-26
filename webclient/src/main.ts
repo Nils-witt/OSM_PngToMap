@@ -10,6 +10,7 @@ import {ImageController} from "./controller/ImageController.ts";
 
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './style.css';
+import {DownloadController} from "./controller/DownloadController.ts";
 
 window.customElements.define('image-controls', ImageControls);
 
@@ -29,6 +30,7 @@ new MapController(map); // Initialize the MapController with the map instance
 new ImageController(imageBox);
 
 new ContextMenu(map, imgImage);
+new DownloadController();
 
 if (imgImage) {
     imgImage.src = imgUrl; // Set the source of the image element to the imported image URL

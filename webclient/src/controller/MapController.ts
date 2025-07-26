@@ -14,7 +14,7 @@ export class MapController {
                 visualizePitch: true,   // Show pitch control
                 showZoom: true          // Show zoom controls
             });
-            map.addControl(navControl, 'top-left');
+            map.addControl(navControl, 'top-right');
 
         });
         this.setUpMarkers();

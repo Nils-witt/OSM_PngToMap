@@ -9,7 +9,6 @@ from PIL.Image import DecompressionBombError
 from create_basemap_image import generate_osm_png
 from utils import deg2num, find_x_bounds, find_y_bounds, tile_empty
 
-# Remove if you dont trust the images you are working with
 Image.MAX_IMAGE_PIXELS = None
 
 
@@ -31,7 +30,6 @@ class GenerateTiles:
         self.x_min = None
         self.y_max = None
         self.y_min = None
-        self.osm_tiles = None
         self.tiles_path = tiles_path
         self.overlay_img_path = overlay_img_path
         self.zoom = zoom
@@ -50,35 +48,39 @@ class GenerateTiles:
             print("Loaded picture point", point)
 
     def prepare_coordinates_for_warp(self):
-        self.osm_tiles = [deg2num(coord[0], coord[1], self.zoom) for coord in self.coordinates]
-        # Compute Tiles
-        x_tiles = [int(f[0]) for f in self.osm_tiles]
-        y_tiles = [int(f[1]) for f in self.osm_tiles]
 
+        marker_osm_tiles = [deg2num(coord[0], coord[1], self.zoom) for coord in self.coordinates]
+        # Compute Tiles
+        x_tiles = [int(f[0]) for f in marker_osm_tiles]
+        y_tiles = [int(f[1]) for f in marker_osm_tiles]
         x_tiles.sort()
         y_tiles.sort()
 
-        self.y_min = y_tiles[0]
-        self.y_max = y_tiles[-1]
-        self.x_min = x_tiles[0]
-        self.x_max = x_tiles[-1]
+        osm_tile_offset = 20
 
-        self.logger.info(f"X-Tile-Bounds[{self.zoom}]: {x_tiles} max: {self.x_max} min: {self.x_min}")
-        self.logger.info(f"Y-Tile-Bounds[{self.zoom}]: {y_tiles} max: {self.y_max} min: {self.y_min}")
+        self.y_min = y_tiles[0] - osm_tile_offset
+        self.y_max = y_tiles[-1] + osm_tile_offset
+        self.x_min = x_tiles[0] - osm_tile_offset
+        self.x_max = x_tiles[-1] + osm_tile_offset
 
-        for (i, val) in enumerate(self.osm_tiles):
+        self.logger.info(
+            f"X-Tile-Bounds[{self.zoom}]: max: {self.x_max} min: {self.x_min}, count : {self.x_max - self.x_min + 1}")
+        self.logger.info(
+            f"Y-Tile-Bounds[{self.zoom}]:max: {self.y_max} min: {self.y_min}, count : {self.y_max - self.y_min + 1}")
+
+        for (i, val) in enumerate(marker_osm_tiles):
             self.logger.info(
                 f"[Marker {i + 1}][{self.zoom}] Overlay [{self.picture_points[i][0]}, {self.picture_points[i][1]}] Map [{(val[0] - self.x_min) * 256}, {(val[1] - self.y_min) * 256}]")
 
         self.map_img_offsets = [(int((val[0] - self.x_min) * 256), int((val[1] - self.y_min) * 256)) for val in
-                                self.osm_tiles]
+                                marker_osm_tiles]
 
         self.logger.info(f"Map Image Offsets: {self.map_img_offsets}")
 
-    def calulate_target_size(self, im_src):
+    def calulate_target_size(self,):
         return (
-            (self.x_max - self.x_min) * 256 * 2,
-            (self.y_max - self.y_min) * 256 * 2
+            (self.x_max - self.x_min) * 256,
+            (self.y_max - self.y_min) * 256
         )
 
     def warp_image(self):
@@ -91,12 +93,13 @@ class GenerateTiles:
         if os.path.exists(f"{self.tmp_dir}/overlay_{self.zoom}.png"):
             self.logger.info("Skipping Warp, already exists")
             return
+
         pts_src = np.array(self.picture_points)
         pts_dst = np.array(self.map_img_offsets)
 
         h, status = cv2.findHomography(pts_src, pts_dst)
         im_src = cv2.imread(self.overlay_img_path, cv2.IMREAD_UNCHANGED)
-        target_pic_size = self.calulate_target_size(im_src)
+        target_pic_size = self.calulate_target_size()
 
         im_out = cv2.warpPerspective(
             im_src,
@@ -106,6 +109,7 @@ class GenerateTiles:
         del im_src
         cv2.imwrite(f"{self.tmp_dir}/overlay_{self.zoom}.png", im_out)
         del im_out
+
     def crop_image(self):
         self.logger.info("Cropping image")
         if os.path.exists(f"{self.tmp_dir}/overlay_{self.zoom}_crop.png"):
@@ -113,7 +117,7 @@ class GenerateTiles:
             return
         src_img = Image.open(f"{self.tmp_dir}/overlay_{self.zoom}.png")
         lower_y = find_y_bounds(src_img)
-        print("YL:",lower_y)
+        print("YL:", lower_y)
         right_x = find_x_bounds(src_img)
         print("XR:", right_x)
         cropped = src_img.crop((0, 0, right_x, lower_y))
@@ -130,20 +134,20 @@ class GenerateTiles:
             ref.save(f"{self.tmp_dir}/overlay_{self.zoom}_ref.png")
         else:
             ref = Image.open(f"{self.tmp_dir}/overlay_{self.zoom}_ref.png")
-        ref.paste(img,(0,0),img)
+        ref.paste(img, (0, 0), img)
         ref.save(f"{self.tmp_dir}/overlay_{self.zoom}_wb.png")
         self.logger.info("Creating Ref done")
 
-    def tile_worker(self,img: Image, x_offset:int , y_offset:int , save_path:str):
+    def tile_worker(self, img: Image, x_offset: int, y_offset: int, save_path: str):
         tile_size = 256
         tile = img.crop((x_offset * tile_size,
-                             y_offset * tile_size,
-                             x_offset * tile_size + tile_size,
-                             y_offset * tile_size + tile_size))
+                         y_offset * tile_size,
+                         x_offset * tile_size + tile_size,
+                         y_offset * tile_size + tile_size))
         if not tile_empty(tile):
             tile.save(save_path)
 
-    def tile_x_worker(self,img:Image, x_offset:int):
+    def tile_x_worker(self, img: Image, x_offset: int):
         tile_size = 256
         current_x_dir: str = f"{self.tiles_path}/{self.zoom}/{x_offset + self.x_min}"
         os.makedirs(current_x_dir, exist_ok=True)
@@ -156,7 +160,7 @@ class GenerateTiles:
         if len(os.listdir(current_x_dir)) == 0:
             os.rmdir(current_x_dir)
 
-    def tile_x_queues_worker(self, img: Image,queue: list[int]):
+    def tile_x_queues_worker(self, img: Image, queue: list[int]):
         for i in queue:
             self.tile_x_worker(img, i)
 
@@ -189,11 +193,11 @@ class GenerateTiles:
         for i in range(cores):
             # p = multiprocessing.Process(target=self.tile_x_queues_worker, args=(src_img, queues[i]))
             print(f"Starting process {i}")
-            #p.start()
+            # p.start()
             self.tile_x_queues_worker(src_img, queues[i])
 
         for i in range(cores):
-            #p.join()
+            # p.join()
             pass
 
         print("Done alle")
