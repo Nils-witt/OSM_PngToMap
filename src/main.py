@@ -23,7 +23,7 @@ def main():
         print(f"Input image '{input_image}' does not exist.")
         sys.exit(1)
     if not os.path.exists(f'{config}'):
-        print(f"Input image '{config}' does not exist.")
+        print(f"Config file '{config}' does not exist.")
         sys.exit(1)
 
     print(f"Starting processing for project '{output_path}' with input image '{input_image} and {config}'...")
