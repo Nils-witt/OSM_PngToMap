@@ -92,7 +92,7 @@ def main(output_path: str, image_path: str, config_path: str, zoom_levels: list)
     os.makedirs(os.path.join(working_dir, "generator"), exist_ok=True)
     zoom_max = max(zoom_levels)
 
-    print("STEP 4: Run Generator")
+    print("STEP 5: Run Generator")
     generator = GenerateTiles(
         output_path,
         os.path.join(working_dir, "tmp_cleaned.png"),
