@@ -26,7 +26,7 @@ def main():
         print(f"Config file '{config}' does not exist.")
         sys.exit(1)
 
-    print(f"Starting processing for project '{output_path}' with input image '{input_image} and {config}'...")
+    print(f"Starting processing for project '{output_path}' with input image '{input_image}' and '{config}'...")
     entry.main(output_path=output_path, image_path=input_image, config_path=config, zoom_levels=[max_zoom_level])
     print(f"Creating canvas for zoom level {max_zoom_level}...")
     create_canvas(output_path, max_zoom_level)
