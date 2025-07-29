@@ -34,6 +34,16 @@ export class DownloadController {
                 longitude: value.lng
             };
         }
+        let imgBox = document.getElementById('imageBox');
+
+        if (!imgBox) {
+            console.error("Element with ID 'imageBox' not found in the DOM.");
+            return; // Exit the function early to prevent further errors
+        }
+        data['img_scale'] = {
+            width: imgBox.clientWidth,
+            height: imgBox.clientHeight
+        }
         console.log(JSON.stringify(data));
         let blob = new Blob([JSON.stringify(data)], {type: "application/json"});
 

@@ -31,14 +31,6 @@ const imageController = new ImageController(imageBox);
 
 new ContextMenu(map, imgImage);
 new DownloadController();
-/*
-if (imgImage) {
-    imgImage.src = imgUrl; // Set the source of the image element to the imported image URL
-}
-*/
-
-
-
 
 if (imageBox && imgHalf) {
     const panzoom = Panzoom(imageBox, {
