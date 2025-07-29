@@ -6,7 +6,6 @@ import numpy as np
 from PIL import Image
 from PIL.Image import DecompressionBombError
 
-from create_basemap_image import generate_osm_png
 from utils import deg2num, find_x_bounds, find_y_bounds, tile_empty
 
 Image.MAX_IMAGE_PIXELS = None
@@ -77,7 +76,7 @@ class GenerateTiles:
 
         self.logger.info(f"Map Image Offsets: {self.map_img_offsets}")
 
-    def calulate_target_size(self,):
+    def calulate_target_size(self, ):
         return (
             (self.x_max - self.x_min) * 256,
             (self.y_max - self.y_min) * 256
@@ -125,19 +124,6 @@ class GenerateTiles:
         del cropped
         self.logger.info("Copping image done")
 
-    def createRef(self):
-        self.logger.info("Creating Ref")
-        img = Image.open(f"{self.tmp_dir}/overlay_{self.zoom}_crop.png")
-        if not os.path.exists(f"{self.tmp_dir}/overlay_{self.zoom}_ref.png"):
-            tile_url = "https://sgx.geodatenzentrum.de/wmts_basemapde/tile/1.0.0/de_basemapde_web_raster_farbe/default/GLOBAL_WEBMERCATOR/{z}/{y}/{x}.png"
-            ref = generate_osm_png(tile_url, self.x_min, self.x_max, self.y_min, self.y_max, self.zoom)
-            ref.save(f"{self.tmp_dir}/overlay_{self.zoom}_ref.png")
-        else:
-            ref = Image.open(f"{self.tmp_dir}/overlay_{self.zoom}_ref.png")
-        ref.paste(img, (0, 0), img)
-        ref.save(f"{self.tmp_dir}/overlay_{self.zoom}_wb.png")
-        self.logger.info("Creating Ref done")
-
     def tile_worker(self, img: Image, x_offset: int, y_offset: int, save_path: str):
         tile_size = 256
         tile = img.crop((x_offset * tile_size,
@@ -153,8 +139,6 @@ class GenerateTiles:
         os.makedirs(current_x_dir, exist_ok=True)
         y_offset = 0
         while y_offset < (img.height / tile_size):
-            self.logger.info(
-                f"Generating Tile[{self.zoom}]: {x_offset} (of {(img.width / tile_size)}) / {y_offset} (of {(img.height / tile_size)})")
             self.tile_worker(img, x_offset, y_offset, f"{current_x_dir}/{y_offset + self.y_min}.png")
             y_offset += 1
         if len(os.listdir(current_x_dir)) == 0:
@@ -176,7 +160,7 @@ class GenerateTiles:
         self.logger.info(f"Src Image[{self.zoom}]: {src_width}, {src_height}")
         tile_size = 256
         cores = multiprocessing.cpu_count() - 1
-        cores = 2
+#        cores = 2
         self.logger.info(f"Using {cores} cores")
 
         queues = {}
@@ -188,17 +172,17 @@ class GenerateTiles:
             queues[x_offset % cores].append(x_offset)
             x_offset += 1
 
-        print(queues)
-
+        procs = {}
         for i in range(cores):
-            # p = multiprocessing.Process(target=self.tile_x_queues_worker, args=(src_img, queues[i]))
+            p = multiprocessing.Process(target=self.tile_x_queues_worker, args=(src_img, queues[i]))
             print(f"Starting process {i}")
-            # p.start()
-            self.tile_x_queues_worker(src_img, queues[i])
+            p.start()
+            procs[i] = p
+            #self.tile_x_queues_worker(src_img, queues[i])
 
         for i in range(cores):
-            # p.join()
-            pass
+            procs[i].join()
+            print("Done process ", i)
 
         print("Done alle")
 
