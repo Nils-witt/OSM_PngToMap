@@ -63,7 +63,7 @@ def main(output_path: str, image_path: str, config_path: str, zoom_levels: list)
     f.close()
 
     imgsize = img.size
-    print("Ref: Imfage size: {}".format(imgsize))
+    print("Ref: Image size: {}".format(imgsize))
     scale_width = imgsize[0] / config['img_scale']['width']
     scale_height = imgsize[1] / config['img_scale']['height']
     del img
