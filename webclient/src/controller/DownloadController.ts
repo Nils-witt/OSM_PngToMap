@@ -34,6 +34,12 @@ export class DownloadController {
                 longitude: value.lng
             };
         }
+        let imgBox = document.getElementById('imageBox');
+
+        data['img_scale'] = {
+            width: imgBox.clientWidth,
+            height: imgBox.clientHeight
+        }
         console.log(JSON.stringify(data));
         let blob = new Blob([JSON.stringify(data)], {type: "application/json"});
 
