@@ -22,7 +22,7 @@ def main(output_path: str, image_path: str, config_path: str, zoom_levels: list)
     if not os.path.exists(working_dir):
         os.makedirs(working_dir, exist_ok=True)
 
-    if not os.path.exists(os.path.join(image_path)):
+    if not os.path.exists(image_path):
         print("Missing input image")
         exit(1)
 
