@@ -11,27 +11,18 @@ Image.MAX_IMAGE_PIXELS = None
 
 USE_CACHE = False
 
-def main(project_name: str, image_path: str, data_dir: str, zoom_levels: list):
-    project_dir = os.path.join(data_dir, project_name)
-    working_dir = os.path.join(project_dir, "workdir")
-    input_dir = os.path.join(project_dir, "input")
-    output_dir = os.path.join(project_dir, "output")
 
-    print("Project directory: {}".format(project_dir))
-    print("Input directory: {}".format(input_dir))
+def main(output_path: str, image_path: str, config_path: str, zoom_levels: list):
+    working_dir = os.path.join(output_path, "workdir")
+
+    print("Input directory: {}".format(image_path))
+    print("Config path: {}".format(config_path))
     print("Working directory: {}".format(working_dir))
-    print("Output directory: {}".format(output_dir))
-
-    if not os.path.exists(project_dir):
-        os.makedirs(project_dir, exist_ok=True)
-    if not os.path.exists(input_dir):
-        os.makedirs(input_dir, exist_ok=True)
+    print("Output directory: {}".format(output_path))
     if not os.path.exists(working_dir):
         os.makedirs(working_dir, exist_ok=True)
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir, exist_ok=True)
 
-    if not os.path.exists(os.path.join(project_dir, "input", image_path)):
+    if not os.path.exists(os.path.join(image_path)):
         print("Missing input image")
         exit(1)
 
@@ -40,7 +31,7 @@ def main(project_name: str, image_path: str, data_dir: str, zoom_levels: list):
         exit(1)
 
     elif image_path.endswith(".png"):
-        shutil.copyfile(os.path.join(project_dir, "input", image_path), os.path.join(working_dir, "tmp.png"))
+        shutil.copyfile(image_path, os.path.join(working_dir, "tmp.png"))
         print("Image is already a PNG, skipping conversion.")
 
     tmp_img_path = os.path.join(working_dir, "tmp.png")
@@ -49,7 +40,7 @@ def main(project_name: str, image_path: str, data_dir: str, zoom_levels: list):
     img.save(tmp_cleand_img_path)
     print("Done: Removing parts of the image")
     del img
-
+    print("STEP 3: Sizing image to max input size")
     img = Image.open(tmp_cleand_img_path)
 
     if img.width > 32766 or img.height > 32766:
@@ -62,39 +53,23 @@ def main(project_name: str, image_path: str, data_dir: str, zoom_levels: list):
             img.save(tmp_cleand_img_path)
         else:
             pass
-
-    if img.width > 2000 or img.height > 2000:
-        print(f"Image is larger than 2000x2000 {img.width}x{img.height}")
-        c_width = int(img.width / 2)
-        c_height = int(img.height / 2)
-
-        while (c_width > 2000 or c_height > 2000):
-            print(f"Resizing image to {c_width}x{c_height}")
-            file_path = os.path.join(working_dir, f"overlay_{c_width}x{c_height}.png")
-            if not os.path.exists(file_path):
-                img_part = img.resize((int(c_width), c_height))
-                img_part.save(file_path)
-                del img_part
-            else:
-                print(f"Skipped")
-            c_width = int(c_width / 2)
-            c_height = int(c_height / 2)
-
-    if not os.path.exists(os.path.join(project_dir, "input", "transform.json")):
+    if not os.path.exists(config_path):
         print("Missing input config")
         exit(1)
 
-    f = open(os.path.join(project_dir, "input", "transform.json"))
+    print("STEP 4: Loading config and scaling markers")
+    f = open(config_path)
     config = json.loads(f.read())
     f.close()
 
     imgsize = img.size
-    scale_width = imgsize[0] / 945
-    scale_height = imgsize[1] / 1335
+    print("Ref: Imfage size: {}".format(imgsize))
+    scale_width = imgsize[0] / config['img_scale']['width']
+    scale_height = imgsize[1] / config['img_scale']['height']
     del img
 
     markers_scaled = {}
-    for i in range(1,5):
+    for i in range(1, 5):
         markers_scaled[i] = {
             "overlay": {
                 "x": config['img'][i.__str__()]['x'] * scale_width,
@@ -107,17 +82,19 @@ def main(project_name: str, image_path: str, data_dir: str, zoom_levels: list):
         }
     print(f"Scale: {scale_width}, {scale_height}")
 
-    for i in range(1,5):
+    print("Markers on input image:")
+    for i in range(1, 5):
         print(f"M{i}: {markers_scaled[i]['overlay']['x']}, {markers_scaled[i]['overlay']['y']}")
 
     logger = logging.getLogger(__name__)
     logger.addHandler(logging.StreamHandler())
-    logging.basicConfig(filename=f'{project_dir}/tile.log', level=logging.INFO)
+    logging.basicConfig(filename=f'{output_path}/tile.log', level=logging.INFO)
     os.makedirs(os.path.join(working_dir, "generator"), exist_ok=True)
     zoom_max = max(zoom_levels)
 
+    print("STEP 4: Run Generator")
     generator = GenerateTiles(
-        os.path.join(project_dir, "output"),
+        output_path,
         os.path.join(working_dir, "tmp_cleaned.png"),
         markers_scaled,
         zoom=zoom_max,
