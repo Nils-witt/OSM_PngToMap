@@ -1,3 +1,10 @@
+"""
+create_marker_overlay.py
+
+This module provides the GenerateTiles class, which handles the process of overlaying marker data onto map tiles,
+warping and cropping the overlay image, and generating map tiles for use in mapping applications.
+"""
+
 import multiprocessing
 import os
 
@@ -12,6 +19,10 @@ Image.MAX_IMAGE_PIXELS = None
 
 
 class GenerateTiles:
+    """
+    GenerateTiles handles the process of generating map tiles from an overlay image and marker data.
+    """
+
     coordinates: list[list[float]] = []
     picture_points: list[list[int]] = []
 
@@ -24,6 +35,9 @@ class GenerateTiles:
             logger=None,
             tmp_dir: str = "tmp/"
     ):
+        """
+        Initialize the GenerateTiles object with paths, marker data, zoom level, logger, and temp directory.
+        """
         self.map_img_offsets = None
         self.x_max = None
         self.x_min = None
@@ -37,6 +51,9 @@ class GenerateTiles:
         self.tmp_dir = tmp_dir
 
     def create_reference_points(self):
+        """
+        Extracts reference points from the markers for both map coordinates and overlay image points.
+        """
         self.coordinates: list[list[float]] = [[self.markers[f]['map']['lat'], self.markers[f]['map']['lng']] for f in
                                                self.markers]
         for coord in self.coordinates:
@@ -47,6 +64,9 @@ class GenerateTiles:
             print("Loaded picture point", point)
 
     def prepare_coordinates_for_warp(self):
+        """
+        Prepares the coordinates and calculates the bounds for warping the overlay image to map tiles.
+        """
 
         marker_osm_tiles = [deg2num(coord[0], coord[1], self.zoom) for coord in self.coordinates]
         # Compute Tiles
@@ -77,12 +97,18 @@ class GenerateTiles:
         self.logger.info(f"Map Image Offsets: {self.map_img_offsets}")
 
     def calulate_target_size(self, ):
+        """
+        Calculates the target size for the warped overlay image based on tile bounds.
+        """
         return (
             (self.x_max - self.x_min) * 256,
             (self.y_max - self.y_min) * 256
         )
 
     def warp_image(self):
+        """
+        Warps the overlay image using homography based on reference points and saves the result.
+        """
         if len(self.picture_points) < 4:
             self.logger.info("Not enough points to warp image")
             return
@@ -98,18 +124,23 @@ class GenerateTiles:
 
         h, status = cv2.findHomography(pts_src, pts_dst)
         im_src = cv2.imread(self.overlay_img_path, cv2.IMREAD_UNCHANGED)
+        print("PIXEL:" + str(im_src[0,0]))
         target_pic_size = self.calulate_target_size()
 
         im_out = cv2.warpPerspective(
             im_src,
             h,
-            target_pic_size
+            target_pic_size,
+            borderMode=cv2.BORDER_TRANSPARENT
         )
         del im_src
         cv2.imwrite(f"{self.tmp_dir}/overlay_{self.zoom}.png", im_out)
         del im_out
 
     def crop_image(self):
+        """
+        Crops the warped overlay image to remove empty space and saves the cropped image.
+        """
         self.logger.info("Cropping image")
         if os.path.exists(f"{self.tmp_dir}/overlay_{self.zoom}_crop.png"):
             self.logger.info("Skipping crop, already exists")
@@ -125,6 +156,9 @@ class GenerateTiles:
         self.logger.info("Copping image done")
 
     def tile_worker(self, img: Image, x_offset: int, y_offset: int, save_path: str):
+        """
+        Worker function to crop a single tile from the image and save it if not empty.
+        """
         tile_size = 256
         tile = img.crop((x_offset * tile_size,
                          y_offset * tile_size,
@@ -134,6 +168,9 @@ class GenerateTiles:
             tile.save(save_path)
 
     def tile_x_worker(self, img: Image, x_offset: int):
+        """
+        Worker function to process all tiles in a given x column.
+        """
         tile_size = 256
         current_x_dir: str = f"{self.tiles_path}/{self.zoom}/{x_offset + self.x_min}"
         os.makedirs(current_x_dir, exist_ok=True)
@@ -145,10 +182,16 @@ class GenerateTiles:
             os.rmdir(current_x_dir)
 
     def tile_x_queues_worker(self, img: Image, queue: list[int]):
+        """
+        Worker function to process a queue of x columns for tiling.
+        """
         for i in queue:
             self.tile_x_worker(img, i)
 
     def generate_tiles(self):
+        """
+        Generates all map tiles from the cropped overlay image using multiprocessing.
+        """
         try:
             src_img = Image.open(f"{self.tmp_dir}/overlay_{self.zoom}_crop.png")
             src_height = src_img.height
@@ -187,6 +230,9 @@ class GenerateTiles:
         print("Done alle")
 
     def run(self):
+        """
+        Runs the complete tile generation pipeline: reference points, warp, crop, and tile generation.
+        """
         self.logger.info("Starting")
         self.create_reference_points()
         self.prepare_coordinates_for_warp()
