@@ -1,3 +1,9 @@
+"""
+tile_calc.py
+
+This module provides functions for resizing map tiles, creating a canvas image from tiles, and generating an index JSON.
+"""
+
 import os
 
 from PIL import Image
@@ -7,6 +13,9 @@ import json
 
 
 def resize(tile_path: str, target_zoom: int) -> None:
+    """
+    Resizes tiles from a higher zoom level to the target zoom level and saves the resized tiles.
+    """
     tiles = []
     new_tiles_set = {}
 
@@ -59,6 +68,9 @@ def resize(tile_path: str, target_zoom: int) -> None:
 
 
 def create_canvas(data_dir: str, target_zoom: int) -> None:
+    """
+    Creates a single canvas image by stitching together all tiles at the target zoom level.
+    """
     x_min = None
     y_min = None
     x_max = None
@@ -92,22 +104,29 @@ def create_canvas(data_dir: str, target_zoom: int) -> None:
                     canvas.paste(tile_img, (x_offset, y_offset), tile_img)
     canvas.save(f"{data_dir}/{target_zoom}/canvas.png")
 
-def create_index_json(data_dir: str, target_zoom: int) -> None:
-    index = {
-        "zoom": target_zoom,
-        "tiles": []
+def create_index_json(data_dir: str) -> None:
+    """
+    Generates an index.json file listing all tile coordinates for the given zoom level.
+    """
+    global_index = {
+
     }
 
-    for x_dir in os.listdir(f"{data_dir}/{target_zoom}"):
-        if not os.path.isdir(f"{data_dir}/{target_zoom}/{x_dir}"):
-            continue
-        x_value = int(x_dir)
-        for y_dir in os.listdir(f"{data_dir}/{target_zoom}/{x_dir}"):
-            y_value = int(y_dir[:-4])
-            index["tiles"].append({
-                "x": x_value,
-                "y": y_value
-            })
 
-    with open(f"{data_dir}/{target_zoom}/index.json", "w") as f:
-        json.dump(index, f, indent=4)
+    for zoom_dir in os.listdir(data_dir):
+        if not os.path.isdir(f"{data_dir}/{zoom_dir}"):
+            continue
+        target_zoom = int(zoom_dir)
+        zoom_index = {}
+        for x_dir in os.listdir(f"{data_dir}/{target_zoom}"):
+            if not os.path.isdir(f"{data_dir}/{target_zoom}/{x_dir}"):
+                continue
+            x_value = int(x_dir)
+            x_array = []
+            for y_file in os.listdir(f"{data_dir}/{target_zoom}/{x_dir}"):
+                x_array.append(y_file)
+            zoom_index[x_value] = x_array
+        global_index[target_zoom] = zoom_index
+
+    with open(f"{data_dir}/index.json", "w") as f:
+        json.dump(global_index, f, indent=4)

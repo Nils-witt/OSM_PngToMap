@@ -1,9 +1,18 @@
+"""
+utils.py
+
+This module provides utility functions for coordinate conversions, tile checks, and image boundary detection.
+"""
+
 import math
 from PIL import Image
 
 
 # Credits: https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Python
 def deg2num(lat_deg, lon_deg, zoom):
+    """
+    Converts latitude and longitude to OSM tile numbers at a given zoom level.
+    """
     lat_rad = math.radians(lat_deg)
     n = 1 << zoom
     x_tile = (lon_deg + 180.0) / 360.0 * n
@@ -13,6 +22,9 @@ def deg2num(lat_deg, lon_deg, zoom):
 
 # Credits: https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Python
 def num2deg(x_tile, y_tile, zoom):
+    """
+    Converts OSM tile numbers to latitude and longitude at a given zoom level.
+    """
     n = 1 << zoom
     lon_deg = x_tile / n * 360.0 - 180.0
     lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * y_tile / n)))
@@ -21,6 +33,9 @@ def num2deg(x_tile, y_tile, zoom):
 
 
 def tile_empty(tile) -> bool:
+    """
+    Checks if a tile image is completely transparent (empty).
+    """
     for x in range(0, tile.width):
         for y in range(0, tile.height):
             if tile.getpixel((x, y)) != (0, 0, 0, 0):
@@ -29,6 +44,9 @@ def tile_empty(tile) -> bool:
 
 
 def find_y_bounds(src_img: Image) -> int:
+    """
+    Finds the lower y-bound of non-transparent pixels in the image.
+    """
     src_height = src_img.height
     src_width = src_img.width
     found_pixel = False
@@ -53,6 +71,9 @@ def find_y_bounds(src_img: Image) -> int:
 
 
 def find_x_bounds(src_img: Image) -> int:
+    """
+    Finds the right x-bound of non-transparent pixels in the image.
+    """
     src_height = src_img.height
     src_width = src_img.width
     found_pixel = False

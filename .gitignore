@@ -6,3 +6,5 @@
 /webclient/node_modules/
 /.venv/
 /webclient/dist
+/.idea/
+.DS_Store
