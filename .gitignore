@@ -8,3 +8,6 @@
 /webclient/dist
 /.idea/
 .DS_Store
+*.pyc
+__pycache__/
+*.sqlite3
