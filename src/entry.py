@@ -34,7 +34,7 @@ def main(tile_path: str, tmp_path: str, image_path: str, config_path: str, zoom_
     if not os.path.exists(tile_path):
         os.makedirs(tile_path, exist_ok=True)
 
-    if not os.path.exists(os.path.join(image_path)):
+    if not os.path.exists(image_path):
         print("Missing input image")
         exit(1)
 
@@ -84,7 +84,7 @@ def main(tile_path: str, tmp_path: str, image_path: str, config_path: str, zoom_
     f.close()
 
     imgsize = img.size
-    print("Ref: Imfage size: {}".format(imgsize))
+    print("Ref: Image size: {}".format(imgsize))
     scale_width = imgsize[0] / config['img_scale']['width']
     scale_height = imgsize[1] / config['img_scale']['height']
     del img
@@ -112,7 +112,9 @@ def main(tile_path: str, tmp_path: str, image_path: str, config_path: str, zoom_
     logging.basicConfig(filename=f'{tmp_path}/tile.log', level=logging.INFO)
     os.makedirs(os.path.join(tmp_path, "generator"), exist_ok=True)
     zoom_max = max(zoom_levels)
-    print("STEP 4: Run Generator")
+
+    print("STEP 5: Run Generator")
+
     generator = GenerateTiles(
         tile_path,
         tmp_img_path,

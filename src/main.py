@@ -34,16 +34,12 @@ def main():
         print(f"Input image '{input_image}' does not exist.")
         sys.exit(1)
     if not os.path.exists(f'{config}'):
-        print(f"Input image '{config}' does not exist.")
+        print(f"Config file '{config}' does not exist.")
         sys.exit(1)
-
-    tile_path = os.path.join(work_path, "tiles")
-    tmp_path = os.path.join(work_path, "tmp")
-
-    # create_index_json(output_path)
 
     print(f"Starting processing for project '{work_path}' with input image '{input_image} and {config}'...")
     entry.main(tile_path=tile_path, tmp_path=tmp_path, image_path=input_image, config_path=config, zoom_levels=[max_zoom_level])
+    
     print(f"Creating canvas for zoom level {max_zoom_level}...")
     #    create_canvas(output_path, max_zoom_level)
 
