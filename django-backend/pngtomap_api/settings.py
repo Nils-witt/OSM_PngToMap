@@ -11,26 +11,29 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-c@9-l0k7son8026=s1g6y@4g&)9u)bg79(f)q9_+y9pmdkh)$+'
+#TODO: change this to an environment variable for production
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-c@9-l0k7son8026=s1g6y@4g&)9u)bg79(f)q9_+y9pmdkh)$+')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    # ASGI
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,9 +41,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Third party apps
+    
     'rest_framework',
     'channels',
     'corsheaders',
+    'django_celery_results',
     # Local apps
     'api',
 ]
@@ -79,7 +84,7 @@ ASGI_APPLICATION = 'pngtomap_api.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
+#TODO: use postgres for production
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -160,3 +165,20 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+# pick which cache from the CACHES setting.
+CELERY_CACHE_BACKEND = 'default'
+
+# django setting.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'my_cache_table',
+    }
+}
+CELERY_BROKER_URL = os.environ.get(
+    'BROKER_URL', 'amqp://kalo:kalo@127.0.0.1//')
+CELERY_TIMEZONE = "Europe/Berlin"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_RESULT_BACKEND = 'django-db'

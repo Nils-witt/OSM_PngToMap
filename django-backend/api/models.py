@@ -30,7 +30,12 @@ class Project(UUIDMixIn, TimeStampMixIn, OwnerShipMixIn):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='project_images/', blank=True, null=True)
-    config = models.JSONField(blank=True, null=True)
+
+    min_zoom = models.IntegerField(default=10)
+    max_zoom = models.IntegerField(default=16)
+    coordinates = models.JSONField(blank=True, null=True)  # Expecting a list of [lat, lon] pairs
+
+    status = models.CharField(max_length=50, default='draft',choices=[('draft', 'Draft'),('pending', 'Pending'), ('in_progress', 'In Progress'), ('completed', 'Completed'), ('failed', 'Failed')])
 
     def __str__(self):
         return self.name

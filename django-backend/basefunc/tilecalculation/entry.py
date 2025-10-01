@@ -120,7 +120,6 @@ def main(tile_path: str, tmp_path: str, image_path: str, config_path: str, zoom_
         tmp_img_path,
         markers_scaled,
         zoom=zoom_max,
-        logger=logger,
         tmp_dir=os.path.join(tmp_path, "generator"),
     )
     generator.run()
