@@ -5,6 +5,7 @@ import {DataProvider} from "../DataProvider.ts";
 export class ImageController {
 
     private imageBox: HTMLElement;
+    private imgImage: HTMLImageElement = document.getElementById('imgImage')! as HTMLImageElement;
 
     constructor(imageBox: HTMLElement) {
         this.imageBox = imageBox;
@@ -27,24 +28,8 @@ export class ImageController {
         });
     }
 
-    async showImageOpen() {
-        const imgImage: HTMLImageElement = document.getElementById('imgImage')! as HTMLImageElement;
-        let btn = document.createElement('button');
-        btn.textContent = 'Open Image';
-        btn.style.top = '0px';
-        btn.style.left = '0px';
-        btn.style.zIndex = '1000';
-        btn.style.position = 'absolute';
-        btn.classList.add( 'bg-white', 'h-full', 'w-full', 'text-2xl', 'text-center');
-        document.body.appendChild(btn);
-
-        btn.onclick = async () => {
-            const [fileHandle] = await window.showOpenFilePicker();
-            const file = await fileHandle.getFile();
-            imgImage.src = URL.createObjectURL(file)
-            console.log(imgImage.src);
-            btn.remove();
-        }
-
+    public getImage(): HTMLImageElement {
+        return this.imgImage;
     }
+
 }

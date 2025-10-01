@@ -8,3 +8,10 @@
 /webclient/dist
 /.idea/
 .DS_Store
+*.pyc
+__pycache__/
+*.sqlite3
+
+/django-backend/render_data/
+/django-backend/project_images/
+/django-backend/rendered_tiles/

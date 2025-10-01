@@ -11,10 +11,18 @@ import 'tailwindcss';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './style.scss';
 import {DownloadController} from "./controller/DownloadController.ts";
+import { ApiConnector } from './ApiConnector.ts';
+import { DataProvider } from './DataProvider.ts';
+import { LngLat } from 'maplibre-gl';
 
 // Register the custom element for image controls
 window.customElements.define('image-controls', ImageControls);
 
+let params = new URL(document.location.toString()).searchParams;
+const project_id = params.get("project");
+console.log(project_id);
+
+DataProvider.getInstance().setProjectId(project_id);
 // Get DOM elements for image and containers
 const imgImage: HTMLImageElement = document.getElementById('imgImage')! as HTMLImageElement;
 const imageBox: HTMLDivElement = document.getElementById('imageBox')! as HTMLDivElement;
@@ -22,15 +30,15 @@ const imgHalf: HTMLDivElement = document.getElementById('imgHalf')! as HTMLDivEl
 
 // Initialize the map with default center and zoom
 const map = new MapLibreMap({
-    container: 'map',                                           // HTML element ID where the map will be rendered
-    style: 'https://karten.bereitschaften-drk-bonn.de/vector/styles/maptiler-basic/style.json', // Base map style URL
-    center: [7.1532, 50.7427],                                      // Initial center of the map
-    zoom: 15,                                         // Initial zoom level
+    container: 'map',
+    style: 'https://map.home.nils-witt.de/vector/styles/maptiler-basic/style.json',
+    center: [7.1532, 50.7427],
+    zoom: 15,
 });
 
-// Initialize controllers and context menu
-new MapController(map); // Initialize the MapController with the map instance
+new MapController(map);
 const imageController = new ImageController(imageBox);
+imageController.getImage().src = ApiConnector.getProjectImageURL(project_id);
 new ContextMenu(map, imgImage);
 new DownloadController();
 
@@ -49,5 +57,25 @@ if (imageBox && imgHalf) {
     imgHalf.appendChild(controls);
 }
 
-// Show the image open dialog on load
-imageController.showImageOpen();
+ApiConnector.getProjectDetails(project_id).then(data => {
+    console.log("Loaded marker positions:", data);
+    let id = 1;
+    data.coordinates.forEach(coord => {
+        console.log("Setting marker:", coord);
+        if(coord.img.x !== 0 && coord.img.y !== 0){
+            DataProvider.getInstance().setImgCoords(id, [coord.img.x, coord.img.y]);
+        }
+        if(coord.map.latitude !== 0 && coord.map.longitude !== 0){
+            DataProvider.getInstance().setMapCoords(id, new LngLat(coord.map.longitude, coord.map.latitude));
+        }
+        
+        id += 1;
+        
+    });
+    /*
+       DataProvider.getInstance().setMapCoords(id, this.mapCoords);
+            } else if (this.imgCoords) {
+                DataProvider.getInstance().setImgCoords(id, this.imgCoords);
+            }
+                */
+});

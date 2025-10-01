@@ -8,7 +8,7 @@ import os
 
 from PIL import Image
 
-from utils import num2deg, deg2num
+from .utils import num2deg, deg2num
 import json
 
 

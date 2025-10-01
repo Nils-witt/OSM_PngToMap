@@ -5,7 +5,6 @@ This module provides the GenerateTiles class, which handles the process of overl
 warping and cropping the overlay image, and generating map tiles for use in mapping applications.
 """
 
-import multiprocessing
 import os
 
 import cv2
@@ -13,7 +12,7 @@ import numpy as np
 from PIL import Image
 from PIL.Image import DecompressionBombError
 
-from utils import deg2num, find_x_bounds, find_y_bounds, tile_empty
+from .utils import deg2num, find_x_bounds, find_y_bounds, tile_empty
 
 Image.MAX_IMAGE_PIXELS = None
 
@@ -49,6 +48,16 @@ class GenerateTiles:
         self.logger = logger
         self.markers = markers
         self.tmp_dir = tmp_dir
+
+        if self.logger is None:
+            import logging
+            self.logger = logging.getLogger("GenerateTiles")
+            self.logger.setLevel(logging.INFO)
+            ch = logging.StreamHandler()
+            ch.setLevel(logging.INFO)
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            ch.setFormatter(formatter)
+            self.logger.addHandler(ch)
 
     def create_reference_points(self):
         """
@@ -171,6 +180,7 @@ class GenerateTiles:
         """
         Worker function to process all tiles in a given x column.
         """
+        self.logger.info(f"Processing X Column {x_offset}")
         tile_size = 256
         current_x_dir: str = f"{self.tiles_path}/{self.zoom}/{x_offset + self.x_min}"
         os.makedirs(current_x_dir, exist_ok=True)
@@ -202,30 +212,11 @@ class GenerateTiles:
 
         self.logger.info(f"Src Image[{self.zoom}]: {src_width}, {src_height}")
         tile_size = 256
-        cores = multiprocessing.cpu_count() - 1
-#        cores = 2
-        self.logger.info(f"Using {cores} cores")
-
-        queues = {}
-        for i in range(cores):
-            queues[i] = []
 
         x_offset = 0
         while x_offset < (src_width / tile_size):
-            queues[x_offset % cores].append(x_offset)
+            self.tile_x_worker(src_img, x_offset)
             x_offset += 1
-
-        procs = {}
-        for i in range(cores):
-            p = multiprocessing.Process(target=self.tile_x_queues_worker, args=(src_img, queues[i]))
-            print(f"Starting process {i}")
-            p.start()
-            procs[i] = p
-            #self.tile_x_queues_worker(src_img, queues[i])
-
-        for i in range(cores):
-            procs[i].join()
-            print("Done process ", i)
 
         print("Done alle")
 
