@@ -17,10 +17,16 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DATA_DIR = os.environ.get('DATA_DIR', os.path.join(BASE_DIR, 'data'))
+if not os.path.exists(DATA_DIR):
+    os.makedirs(DATA_DIR)
+
+print(f"Data directory set to: {DATA_DIR}")
+
+MEDIA_ROOT = os.path.join(DATA_DIR, 'media')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-#TODO: change this to an environment variable for production
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-c@9-l0k7son8026=s1g6y@4g&)9u)bg79(f)q9_+y9pmdkh)$+')
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -84,11 +90,14 @@ ASGI_APPLICATION = 'pngtomap_api.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-#TODO: use postgres for production
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': "django.db.backends.postgresql",
+        'NAME': os.environ.get('POSTGRES_DB', 'pngtomap'),
+        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'postgres'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
     }
 }
 
@@ -117,7 +126,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Berlin'
 
 USE_I18N = True
 

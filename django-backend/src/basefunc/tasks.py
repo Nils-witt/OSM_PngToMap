@@ -13,7 +13,7 @@ def render_project(project_id):
     project.status = 'in_progress'
     project.save()
     try:
-        WK_DIR = os.path.join(settings.BASE_DIR, 'render_data', str(project.id))
+        WK_DIR = os.path.join(settings.DATA_DIR, 'render_data', str(project.id))
         if  os.path.exists(WK_DIR):
             shutil.rmtree(WK_DIR)
         os.makedirs(WK_DIR)
@@ -21,7 +21,7 @@ def render_project(project_id):
         IMG_PATH = os.path.join(WK_DIR, 'input.png')
         TILE_OUTPUT_PATH = os.path.join(WK_DIR, 'tiles')
         TMP_PATH = os.path.join(WK_DIR, 'tmp')
-        ZIP_PATH = os.path.join(settings.BASE_DIR, 'rendered_tiles')
+        ZIP_PATH = os.path.join(settings.DATA_DIR, 'rendered_tiles')
         if not os.path.exists(ZIP_PATH):
             os.makedirs(ZIP_PATH)
         if os.path.exists(os.path.join(ZIP_PATH, f'{project.id}.zip')):
