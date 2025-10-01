@@ -17,6 +17,8 @@ export class DataProvider {
     // Stores map coordinates by id
     private mapCoords: Map<number, LngLat> = new Map();
 
+    private projectId: string | null = null;
+
     // Private constructor for singleton
     private constructor() {
         // No initialization required
@@ -116,5 +118,13 @@ export class DataProvider {
         } else {
             console.warn(`No listeners for event: ${event}`);
         }
+    }
+
+    public setProjectId(id: string) {
+        this.projectId = id;
+    }
+    
+    public getProjectId(): string | null {
+        return this.projectId;
     }
 }

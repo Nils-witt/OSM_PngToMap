@@ -3,3 +3,39 @@ services:
     build: .
     ports:
       - "8080:8080"
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+  db:
+    image: "postgres:17"
+    environment:
+      POSTGRES_DB: "pngtomap"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/pg:/var/lib/postgresql/data
+  django:
+    build:
+      context: ./django-backend
+    ports:
+      - "8000:8000"
+  rabbitmq:
+    image: rabbitmq:latest
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: kalo
+      RABBITMQ_DEFAULT_PASS: kalo
+    volumes:
+      - ./data/rabbitmq_data:/var/lib/rabbitmq
+volumes:
+  rabbitmq_data:
+
+configs:
+  rabbitmq-plugins:
+    content: "[rabbitmq_management]."  
