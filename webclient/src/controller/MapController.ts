@@ -1,5 +1,5 @@
 import {Map as MapLibreMap, Marker, NavigationControl} from 'maplibre-gl';
-import {DataProvider} from "../DataProvider.ts";
+import {DataProvider} from "../data/DataProvider.ts";
 
 
 export class MapController {

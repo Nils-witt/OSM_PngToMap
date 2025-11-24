@@ -13,6 +13,11 @@ html {
     padding: 0;
     box-sizing: border-box;
     overflow: hidden;
+
+    #root {
+      height: 100%;
+      width: 100%;
+    }
   }
 }
 
@@ -40,4 +45,23 @@ html {
   max-height: 100%;
   object-fit: contain;
   display: block;
+}
+
+#imgHalf {
+  > * {
+    height: 100%;
+  }
+}
+
+.saveButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }

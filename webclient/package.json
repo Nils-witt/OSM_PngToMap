@@ -10,6 +10,9 @@
     "start": "tsc && vite build && vite preview"
   },
   "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
     "@types/wicg-file-system-access": "^2023.10.7",
     "typescript": "~5.9.3",
     "vite": "^7.2.4"
@@ -21,7 +24,11 @@
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@panzoom/panzoom": "^4.6.0",
     "@tailwindcss/vite": "^4.1.17",
+    "@vitejs/plugin-react": "^5.1.1",
     "maplibre-gl": "^5.13.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-zoom-pan-pinch": "^3.7.0",
     "sass": "^1.94.2"
   }
 }

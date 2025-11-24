@@ -52,7 +52,7 @@ export class DataProvider {
      * @param data Data to pass to listeners
      */
     private notifyListeners(event: string, data: any): void {
-        console.log(`Notifying listeners for event: ${event}`, data);
+        // console.log(`Notifying listeners for event: ${event}`, data);
         if (this.listeners.has(event)) {
             this.listeners.get(event)?.forEach(listener => listener(data));
         }
@@ -68,6 +68,7 @@ export class DataProvider {
         this.notifyListeners('mapCoordsUpdated', {id, coords});
         this.notifyListeners(`mapCoordsUpdated-${id}`, {id, coords});
     }
+
     /**
      * Gets map coordinates for a given id.
      * @param id Marker id
@@ -75,6 +76,7 @@ export class DataProvider {
     public getMapCoords(id: number): LngLat | undefined {
         return this.mapCoords.get(id);
     }
+
     /**
      * Returns a copy of all map coordinates.
      */
@@ -100,6 +102,7 @@ export class DataProvider {
     public getImgCoords(id: number): [number, number] | undefined {
         return this.imgCoords.get(id);
     }
+
     /**
      * Returns a copy of all image coordinates.
      */
@@ -107,23 +110,10 @@ export class DataProvider {
         return new Map(this.imgCoords);
     }
 
-    /**
-     * Fires a custom event to all listeners for the event name.
-     * @param event Event name
-     * @param data Data to pass to listeners
-     */
-    public fireEvent(event: string, data: any): void {
-        if (this.listeners.has(event)) {
-            this.listeners.get(event)?.forEach(listener => listener(data));
-        } else {
-            console.warn(`No listeners for event: ${event}`);
-        }
-    }
-
     public setProjectId(id: string) {
         this.projectId = id;
     }
-    
+
     public getProjectId(): string | null {
         return this.projectId;
     }
