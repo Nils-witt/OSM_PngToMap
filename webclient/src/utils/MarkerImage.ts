@@ -18,7 +18,7 @@ export class MarkerImage {
     constructor(color: string = 'blue') {
         this.markerIcon = document.createElement('span');
         this.markerIcon.innerHTML = icon(faLocationDot).html[0];
-        this.markerIcon.classList.add( 'z-1000');
+        this.markerIcon.classList.add('z-1000');
         this.markerIcon.style.color = color;
         this.markerIcon.style.position = 'absolute';
 
@@ -32,8 +32,6 @@ export class MarkerImage {
     setPosition(x: number, y: number) {
         this.markerIcon.style.top = (y - this.markerIcon.offsetHeight) + 'px';
         this.markerIcon.style.left = (x - this.markerIcon.offsetWidth / 2) + 'px'
-        console.log(this.markerIcon.style.top);
-        console.log(this.markerIcon.style.left);
     }
 
 }

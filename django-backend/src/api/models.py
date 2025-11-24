@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 import uuid
+from django.core.files.storage import FileSystemStorage
 # Create your models here.
 
 
@@ -25,12 +26,12 @@ class OwnerShipMixIn(models.Model):
     class Meta:
         abstract = True
 
+fs = FileSystemStorage(location=settings.DATA_DIR + '/project_images')
 
 class Project(UUIDMixIn, TimeStampMixIn, OwnerShipMixIn):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    image = models.ImageField(upload_to='project_images/', blank=True, null=True)
-
+    image = models.ImageField(storage=fs, blank=True, null=True)
     min_zoom = models.IntegerField(default=10)
     max_zoom = models.IntegerField(default=16)
     coordinates = models.JSONField(blank=True, null=True)  # Expecting a list of [lat, lon] pairs

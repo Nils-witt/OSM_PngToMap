@@ -1,37 +1,82 @@
 services:
+
+
+  frontend:
+    build:
+      context: ./webclient
+
   redis:
     image: "redis:alpine"
-    ports:
-      - "6379:6379"
   db:
     image: "postgres:17"
     environment:
-      POSTGRES_DB: "pngtomap"
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "postgres"
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - ./data/pg:/var/lib/postgresql/data
   django:
     build:
       context: ./django-backend
-    ports:
-      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+    environment:
+      DJANGO_SECRET_KEY: "your_secret_key"
+      DJANGO_DEBUG: "True"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+    volumes:
+      - static_data:/app/static
+  django-worker:
+    build:
+      context: ./django-backend
+    command: celery -A pngtomap_api worker --loglevel=info
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+    environment:
+      DJANGO_SECRET_KEY: "your_secret_key"
+      DJANGO_DEBUG: "True"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
   rabbitmq:
     image: rabbitmq:latest
     restart: always
-    ports:
-      - 5672:5672
-      - 15672:15672
     environment:
       RABBITMQ_DEFAULT_USER: kalo
       RABBITMQ_DEFAULT_PASS: kalo
     volumes:
       - ./data/rabbitmq_data:/var/lib/rabbitmq
+
+  proxy:
+    image: nginx:latest
+    ports:
+      - 80:80
+    volumes:
+      - ./proxy/nginx.conf.template:/etc/nginx/templates/default.conf.template
+      - static_data:/www/static
+    environment:
+      API_HOST: django
+      FRONTEND_HOST: frontend
+    depends_on:
+      - frontend
+      - django
 volumes:
   rabbitmq_data:
-
+  static_data:
 configs:
   rabbitmq-plugins:
     content: "[rabbitmq_management]."  

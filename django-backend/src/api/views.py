@@ -34,7 +34,7 @@ class ProjectViewSet(ModelViewSet):
         project = self.get_object()
         # Assuming the Project model has an 'image' field
         if hasattr(project, 'image') and project.image:
-            image_url = os.path.join(settings.BASE_DIR, project.image.url.lstrip('/'))
+            image_url = os.path.join(settings.DATA_DIR, 'project_images', os.path.basename(project.image.name))
             print(image_url)
             with open(image_url, "rb") as f:
                 return HttpResponse(f.read(), content_type="image/jpeg")

@@ -1,5 +1,5 @@
 import {MarkerImage} from "../utils/MarkerImage.ts";
-import {DataProvider} from "../DataProvider.ts";
+import {DataProvider} from "../data/DataProvider.ts";
 
 
 export class ImageController {

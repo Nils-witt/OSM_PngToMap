@@ -1,12 +1,11 @@
-
 export type MarkerCoords = {
-    img:{
-        x:number,
-         y:number
+    img: {
+        x: number,
+        y: number
     },
     map: {
-        latitude:number,
-         longitude:number
+        latitude: number,
+        longitude: number
     },
     img_scale: {
         width: number,
@@ -18,7 +17,6 @@ export class ApiConnector {
 
 
     public static backendURL = "http://localhost:8000/api/v1/";
-
 
 
     public static getProjectsURL(): string {
@@ -36,7 +34,6 @@ export class ApiConnector {
     public static getProjectImageURL(projectId: string): string {
         return ApiConnector.backendURL + "projects/" + projectId + "/get_image/";
     }
-
 
 
     public static setMarkerPositions(data: MarkerCoords[], projectId: string) {
@@ -63,6 +60,7 @@ export class ApiConnector {
                 console.error('Error:', error);
             });
     }
+
     public static async getProjectDetails(projectId: string) {
         const response = await fetch(this.backendURL + "projects/" + projectId + "/", {
             method: 'PATCH'

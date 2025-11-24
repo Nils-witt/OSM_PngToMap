@@ -6,7 +6,8 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 COPY ./src/ .
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
 
-
-EXPOSE 8080
-CMD ["gunicorn", "-b", ":8080", "app"]
+EXPOSE 8000
+ENTRYPOINT ["sh","/app/entrypoint.sh"]

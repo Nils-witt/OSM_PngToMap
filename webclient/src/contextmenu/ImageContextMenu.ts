@@ -1,27 +1,17 @@
-// ContextMenu.ts
-// Provides a custom context menu for setting marker coordinates on a map or image.
+import type {ContextMenuInterface} from "./ContextMenuInterface.ts";
+import {DataProvider} from "../data/DataProvider.ts";
 
-import {LngLat, Map as MapLibreMap, MapMouseEvent} from "maplibre-gl";
-import {DataProvider} from "./DataProvider.ts";
-
-/**
- * ContextMenu class handles the display and logic for a custom context menu
- * that allows users to set marker coordinates on either a map or an image.
- */
-export class ContextMenu {
+export class ImageContextMenu implements ContextMenuInterface {
     // The container div for the context menu
     private container: HTMLDivElement = document.createElement('div');
     // Stores the last map coordinates selected
-    private mapCoords: LngLat | null = null;
-    // Stores the last image coordinates selected
-    private imgCoords: [number, number] | null = null;
+    private coordinates: [number, number] | null = null;
 
     /**
      * Initializes the context menu and sets up event listeners.
-     * @param map The MapLibre map instance
-     * @param imgImage The image element to attach context menu events
+     * @param imgImage
      */
-    constructor(map: MapLibreMap, imgImage: HTMLImageElement) {
+    constructor(imgImage: HTMLImageElement) {
 
         this.container.classList.add('hidden', 'grid', 'absolute', 'bg-white', 'border', 'border-gray-300', 'shadow-lg', 'rounded-md', 'p-2');
         this.container.style.position = 'absolute';
@@ -43,16 +33,12 @@ export class ContextMenu {
             this.close();
         });
 
-        map.on('contextmenu', (event) => {
-            this.openOnMap(event);
-        });
-
         imgImage.addEventListener('contextmenu', (event: MouseEvent) => {
+            console.log(event);
             event.preventDefault();
             this.openOnImage(event);
             return false;
         });
-        console.log(this.container);
         document.body.appendChild(this.container);
     }
 
@@ -68,10 +54,8 @@ export class ContextMenu {
         markerBtn.textContent = "Marker " + color;
 
         markerBtn.addEventListener('click', () => {
-            if (this.mapCoords) {
-                DataProvider.getInstance().setMapCoords(id, this.mapCoords);
-            } else if (this.imgCoords) {
-                DataProvider.getInstance().setImgCoords(id, this.imgCoords);
+            if (this.coordinates) {
+                DataProvider.getInstance().setImgCoords(id, this.coordinates);
             }
             this.close();
         });
@@ -85,14 +69,8 @@ export class ContextMenu {
         return this.container;
     }
 
-    /**
-     * Opens the context menu at the map coordinates from a map event.
-     * @param event MapMouseEvent from maplibre-gl
-     */
-    openOnMap(event: MapMouseEvent) {
-        this.close();
-        this.mapCoords = event.lngLat;
-        this.openOnImageCoords(event.originalEvent.clientX, event.originalEvent.clientY);
+    open(x: number, y: number) {
+        this.openOnScreenCoords(x, y);
     }
 
     /**
@@ -101,9 +79,9 @@ export class ContextMenu {
      */
     openOnImage(event: MouseEvent) {
         this.close();
-        this.imgCoords = [event.offsetX, event.offsetY];
+        this.coordinates = [event.offsetX, event.offsetY];
 
-        this.openOnImageCoords(event.clientX, event.clientY);
+        this.openOnScreenCoords(event.clientX, event.clientY);
     }
 
     /**
@@ -111,18 +89,17 @@ export class ContextMenu {
      * @param x X coordinate (pixels)
      * @param y Y coordinate (pixels)
      */
-    private openOnImageCoords(x: number, y: number) {
+    private openOnScreenCoords(x: number, y: number) {
         this.container.style.top = `${y}px`;
         this.container.style.left = `${x}px`;
-        this.container.classList.remove('hidden');
+        this.container.style.visibility = 'visible';
     }
 
     /**
      * Closes the context menu and resets stored coordinates.
      */
     public close() {
-        this.mapCoords = null;
-        this.imgCoords = null;
-        this.container.classList.add('hidden');
+        this.coordinates = null;
+        this.container.style.visibility = 'hidden';
     }
 }
