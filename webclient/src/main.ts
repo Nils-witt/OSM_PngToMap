@@ -31,7 +31,7 @@ const imgHalf: HTMLDivElement = document.getElementById('imgHalf')! as HTMLDivEl
 // Initialize the map with default center and zoom
 const map = new MapLibreMap({
     container: 'map',
-    style: 'https://map.home.nils-witt.de/vector/styles/maptiler-basic/style.json',
+    style: 'https://sgx.geodatenzentrum.de/gdz_basemapde_vektor/styles/bm_web_col.json',
     center: [7.1532, 50.7427],
     zoom: 15,
 });

@@ -17,7 +17,7 @@ export class DownloadController {
      */
     constructor() {
         this.button.classList.add( "z-1000", "bg-white", "border", "border-gray-300", "shadow-lg", "rounded-md", "p-2", 'hover:cursor-pointer', 'hover:bg-gray-100');
-        this.button.innerText = "Download";
+        this.button.innerText = "Save Config";
         this.button.style.position = "absolute";
         this.button.style.top = "0px";
         this.button.style.left = "0px";
