@@ -18,17 +18,22 @@
     "vite": "^7.2.4"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
     "@fortawesome/free-brands-svg-icons": "^7.1.0",
     "@fortawesome/free-regular-svg-icons": "^7.1.0",
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
+    "@mui/material": "^7.3.9",
     "@panzoom/panzoom": "^4.6.0",
     "@tailwindcss/vite": "^4.1.17",
     "@vitejs/plugin-react": "^5.1.1",
     "maplibre-gl": "^5.13.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-router-dom": "^7.13.1",
     "react-zoom-pan-pinch": "^3.7.0",
-    "sass": "^1.94.2"
+    "sass": "^1.94.2",
+    "vite-plugin-pwa": "^1.2.0"
   }
 }

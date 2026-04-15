@@ -195,6 +195,7 @@ class GenerateTiles:
         """
         Worker function to process a queue of x columns for tiling.
         """
+        self.logger.info(f"Processing X Columns: {len(queue)} Pics")
         for i in queue:
             self.tile_x_worker(img, i)
 

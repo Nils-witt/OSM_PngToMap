@@ -1,10 +1,7 @@
 services:
-
-
   frontend:
     build:
       context: ./webclient
-
   redis:
     image: "redis:alpine"
   db:
@@ -15,6 +12,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - ./data/pg:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
   django:
     build:
       context: ./django-backend
@@ -34,6 +33,9 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL}
     volumes:
       - static_data:/app/static
+      - ./data/django:/app/data
+    ports:
+      - 8000:8000
   django-worker:
     build:
       context: ./django-backend
@@ -52,6 +54,8 @@ services:
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+    volumes:
+      - ./data/django:/app/data
   rabbitmq:
     image: rabbitmq:latest
     restart: always
@@ -60,7 +64,8 @@ services:
       RABBITMQ_DEFAULT_PASS: kalo
     volumes:
       - ./data/rabbitmq_data:/var/lib/rabbitmq
-
+    ports:
+      - 5672:5672
   proxy:
     image: nginx:latest
     ports:

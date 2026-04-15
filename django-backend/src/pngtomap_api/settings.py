@@ -132,7 +132,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
@@ -190,5 +189,5 @@ CELERY_BROKER_URL = os.environ.get(
     'BROKER_URL', 'amqp://kalo:kalo@127.0.0.1//')
 CELERY_TIMEZONE = "Europe/Berlin"
 CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_TASK_TIME_LIMIT = 60 * 60 # In Seconds
 CELERY_RESULT_BACKEND = 'django-db'
