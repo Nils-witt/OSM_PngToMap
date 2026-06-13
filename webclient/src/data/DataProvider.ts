@@ -1,7 +1,7 @@
 // DataProvider.ts
 // Singleton class for managing and synchronizing image and map coordinates, with event listener support.
 
-import {LngLat} from "maplibre-gl";
+import { LngLat } from 'maplibre-gl';
 
 /**
  * DataProvider is a singleton for storing and synchronizing coordinates between image and map.
@@ -39,7 +39,7 @@ export class DataProvider {
      * @param eventType Event name
      * @param listener Callback function
      */
-    public addListener(eventType: string, listener: ((data: any) => void)): void {
+    public addListener(eventType: string, listener: (data: any) => void): void {
         if (!this.listeners.has(eventType)) {
             this.listeners.set(eventType, []);
         }
@@ -54,7 +54,7 @@ export class DataProvider {
     private notifyListeners(event: string, data: any): void {
         // console.log(`Notifying listeners for event: ${event}`, data);
         if (this.listeners.has(event)) {
-            this.listeners.get(event)?.forEach(listener => listener(data));
+            this.listeners.get(event)?.forEach((listener) => listener(data));
         }
     }
 
@@ -65,8 +65,8 @@ export class DataProvider {
      */
     public setMapCoords(id: number, coords: LngLat): void {
         this.mapCoords.set(id, coords);
-        this.notifyListeners('mapCoordsUpdated', {id, coords});
-        this.notifyListeners(`mapCoordsUpdated-${id}`, {id, coords});
+        this.notifyListeners('mapCoordsUpdated', { id, coords });
+        this.notifyListeners(`mapCoordsUpdated-${id}`, { id, coords });
     }
 
     /**
@@ -91,8 +91,8 @@ export class DataProvider {
      */
     public setImgCoords(id: number, coords: [number, number]): void {
         this.imgCoords.set(id, coords);
-        this.notifyListeners('imgCoordsUpdated', {id, coords});
-        this.notifyListeners(`imgCoordsUpdated-${id}`, {id, coords});
+        this.notifyListeners('imgCoordsUpdated', { id, coords });
+        this.notifyListeners(`imgCoordsUpdated-${id}`, { id, coords });
     }
 
     /**

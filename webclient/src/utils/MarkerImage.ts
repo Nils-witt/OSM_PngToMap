@@ -1,8 +1,8 @@
 // MarkerImage.ts
 // Utility class for creating and positioning a colored marker icon using FontAwesome.
 
-import {icon} from "@fortawesome/fontawesome-svg-core";
-import {faLocationDot} from "@fortawesome/free-solid-svg-icons/faLocationDot";
+import { icon } from '@fortawesome/fontawesome-svg-core';
+import { faLocationDot } from '@fortawesome/free-solid-svg-icons/faLocationDot';
 
 /**
  * MarkerImage creates a colored marker icon element and allows positioning it on the page.
@@ -21,7 +21,6 @@ export class MarkerImage {
         this.markerIcon.classList.add('z-1000');
         this.markerIcon.style.color = color;
         this.markerIcon.style.position = 'absolute';
-
     }
 
     /**
@@ -30,8 +29,7 @@ export class MarkerImage {
      * @param y Y coordinate (pixels)
      */
     setPosition(x: number, y: number) {
-        this.markerIcon.style.top = (y - this.markerIcon.offsetHeight) + 'px';
-        this.markerIcon.style.left = (x - this.markerIcon.offsetWidth / 2) + 'px'
+        this.markerIcon.style.top = y - this.markerIcon.offsetHeight + 'px';
+        this.markerIcon.style.left = x - this.markerIcon.offsetWidth / 2 + 'px';
     }
-
 }

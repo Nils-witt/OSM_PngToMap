@@ -1,9 +1,7 @@
-import {MarkerImage} from "../utils/MarkerImage.ts";
-import {DataProvider} from "../data/DataProvider.ts";
-
+import { MarkerImage } from '../utils/MarkerImage.ts';
+import { DataProvider } from '../data/DataProvider.ts';
 
 export class ImageController {
-
     private imageBox: HTMLElement;
     private imgImage: HTMLImageElement = document.getElementById('imgImage')! as HTMLImageElement;
 
@@ -31,5 +29,4 @@ export class ImageController {
     public getImage(): HTMLImageElement {
         return this.imgImage;
     }
-
 }

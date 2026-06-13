@@ -1,5 +1,5 @@
-import type {ContextMenuInterface} from "./ContextMenuInterface.ts";
-import {DataProvider} from "../data/DataProvider.ts";
+import type { ContextMenuInterface } from './ContextMenuInterface.ts';
+import { DataProvider } from '../data/DataProvider.ts';
 
 export class ImageContextMenu implements ContextMenuInterface {
     // The container div for the context menu
@@ -12,12 +12,15 @@ export class ImageContextMenu implements ContextMenuInterface {
      * @param imgImage
      */
     constructor(imgImage: HTMLImageElement) {
-
-        this.container.classList.add('hidden', 'grid', 'absolute', 'bg-white', 'border', 'border-gray-300', 'shadow-lg', 'rounded-md', 'p-2');
-        this.container.style.position = 'absolute';
+        this.container.classList.add('context-menu');
         this.container.oncontextmenu = () => {
             return false;
         };
+
+        const title = document.createElement('div');
+        title.className = 'context-menu__title';
+        title.textContent = 'Set Marker';
+        this.container.appendChild(title);
 
         let marker1Btn = this.setUpMarker(1, 'red');
         let marker2Btn = this.setUpMarker(2, 'green');
@@ -34,7 +37,6 @@ export class ImageContextMenu implements ContextMenuInterface {
         });
 
         imgImage.addEventListener('contextmenu', (event: MouseEvent) => {
-            console.log(event);
             event.preventDefault();
             this.openOnImage(event);
             return false;
@@ -50,8 +52,16 @@ export class ImageContextMenu implements ContextMenuInterface {
      */
     private setUpMarker(id: number, color: string): HTMLButtonElement {
         const markerBtn = document.createElement('button');
+        markerBtn.className = 'context-menu-item';
 
-        markerBtn.textContent = "Marker " + color;
+        const colorDot = document.createElement('span');
+        colorDot.className = 'context-menu-color-dot';
+        colorDot.style.backgroundColor = color;
+        markerBtn.appendChild(colorDot);
+
+        const label = document.createElement('span');
+        label.textContent = `Marker ${id}`;
+        markerBtn.appendChild(label);
 
         markerBtn.addEventListener('click', () => {
             if (this.coordinates) {
@@ -85,14 +95,24 @@ export class ImageContextMenu implements ContextMenuInterface {
     }
 
     /**
-     * Opens the context menu at the specified screen coordinates.
+     * Opens the context menu at the specified screen coordinates, keeping it within the viewport.
      * @param x X coordinate (pixels)
      * @param y Y coordinate (pixels)
      */
     private openOnScreenCoords(x: number, y: number) {
-        this.container.style.top = `${y}px`;
         this.container.style.left = `${x}px`;
-        this.container.style.visibility = 'visible';
+        this.container.style.top = `${y}px`;
+        this.container.classList.add('visible');
+
+        const rect = this.container.getBoundingClientRect();
+        const overflowX = rect.right - window.innerWidth;
+        const overflowY = rect.bottom - window.innerHeight;
+        if (overflowX > 0) {
+            this.container.style.left = `${Math.max(0, x - overflowX)}px`;
+        }
+        if (overflowY > 0) {
+            this.container.style.top = `${Math.max(0, y - overflowY)}px`;
+        }
     }
 
     /**
@@ -100,6 +120,6 @@ export class ImageContextMenu implements ContextMenuInterface {
      */
     public close() {
         this.coordinates = null;
-        this.container.style.visibility = 'hidden';
+        this.container.classList.remove('visible');
     }
 }
