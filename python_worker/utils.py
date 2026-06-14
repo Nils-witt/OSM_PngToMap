@@ -5,6 +5,8 @@ This module provides utility functions for coordinate conversions, tile checks, 
 """
 
 import math
+
+import numpy as np
 from PIL import Image
 
 
@@ -36,36 +38,18 @@ def tile_empty(tile) -> bool:
     """
     Checks if a tile image is completely transparent (empty).
     """
-    for x in range(0, tile.width):
-        for y in range(0, tile.height):
-            if tile.getpixel((x, y)) != (0, 0, 0, 0):
-                return False
-    return True
+    return not np.asarray(tile).any()
 
 
 def find_y_bounds(src_img: Image) -> int:
     """
     Finds the lower y-bound of non-transparent pixels in the image.
     """
-    src_height = src_img.height
-    src_width = src_img.width
-    found_pixel = False
-    print(src_img.mode)
+    arr = np.asarray(src_img)
 
-    y = src_height - 1
-    if src_img.mode == "RGBA":
-        while not found_pixel and y > 0:
-            for x in range(0, src_width, 1):
-                if src_img.getpixel((x, y)) != (0, 0, 0, 0):
-                    found_pixel = True
-            y = y - 256
-
-    elif src_img.mode == "RGB":
-        while not found_pixel and y > 0:
-            for x in range(0, src_width, 1):
-                if src_img.getpixel((x, y)) != (0, 0, 0):
-                    found_pixel = True
-            y = y - 256
+    y = src_img.height - 1
+    while y > 0 and not arr[y].any():
+        y -= 256
 
     return y + (256 * 2)
 
@@ -74,21 +58,10 @@ def find_x_bounds(src_img: Image) -> int:
     """
     Finds the right x-bound of non-transparent pixels in the image.
     """
-    src_height = src_img.height
-    src_width = src_img.width
-    found_pixel = False
+    arr = np.asarray(src_img)
 
-    x = src_width - 1
-    if src_img.mode == "RGBA":
-        while not found_pixel and x > 0:
-            for y in range(0, src_height, 1):
-                if src_img.getpixel((x, y)) != (0, 0, 0, 0):
-                    found_pixel = True
-            x = x - 256
-    elif src_img.mode == "RGB":
-        while not found_pixel and x > 0:
-            for y in range(0, src_height, 1):
-                if src_img.getpixel((x, y)) != (0, 0, 0):
-                    found_pixel = True
-            x = x - 256
+    x = src_img.width - 1
+    while x > 0 and not arr[:, x].any():
+        x -= 256
+
     return x + (256 * 2)

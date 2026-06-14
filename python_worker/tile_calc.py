@@ -42,8 +42,8 @@ def resize(tile_path: str, target_zoom: int) -> None:
         bounds_y = int((new_tiles[1] - int(new_tiles[1])) * 512)
 
         if new_tiles_set.get(int(new_tiles[0])) is None:
-            new_tiles_set[int(new_tiles[0])] = []
-        new_tiles_set[int(new_tiles[0])].append(int(new_tiles[1]))
+            new_tiles_set[int(new_tiles[0])] = set()
+        new_tiles_set[int(new_tiles[0])].add(int(new_tiles[1]))
 
         with Image.open(current_tile_path) as tile_img:
 
@@ -52,12 +52,12 @@ def resize(tile_path: str, target_zoom: int) -> None:
 
             if not os.path.exists(resized_tile_path):
                 new_tile_img = Image.new("RGBA", (512, 512), "#00000000")  # Create a transparent image
-                new_tile_img.paste(tile_img, (bounds_x, bounds_y))
-                new_tile_img.save(resized_tile_path)
             else:
-                new_tile_img = Image.open(resized_tile_path)
-                new_tile_img.paste(tile_img, (bounds_x, bounds_y))
-                new_tile_img.save(resized_tile_path)
+                with Image.open(resized_tile_path) as existing_tile_img:
+                    new_tile_img = existing_tile_img.copy()
+
+            new_tile_img.paste(tile_img, (bounds_x, bounds_y))
+            new_tile_img.save(resized_tile_path)
 
     for x_new_tile in new_tiles_set:
         for y_new_tile in new_tiles_set[x_new_tile]:

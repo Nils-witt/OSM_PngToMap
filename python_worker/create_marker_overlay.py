@@ -154,12 +154,12 @@ class GenerateTiles:
         if os.path.exists(f"{self.tmp_dir}/overlay_{self.zoom}_crop.png"):
             self.logger.info("Skipping crop, already exists")
             return
-        src_img = Image.open(f"{self.tmp_dir}/overlay_{self.zoom}.png")
-        lower_y = find_y_bounds(src_img)
-        print("YL:", lower_y)
-        right_x = find_x_bounds(src_img)
-        print("XR:", right_x)
-        cropped = src_img.crop((0, 0, right_x, lower_y))
+        with Image.open(f"{self.tmp_dir}/overlay_{self.zoom}.png") as src_img:
+            lower_y = find_y_bounds(src_img)
+            print("YL:", lower_y)
+            right_x = find_x_bounds(src_img)
+            print("XR:", right_x)
+            cropped = src_img.crop((0, 0, right_x, lower_y))
         cropped.save(f"{self.tmp_dir}/overlay_{self.zoom}_crop.png")
         del cropped
         self.logger.info("Copping image done")
@@ -204,20 +204,20 @@ class GenerateTiles:
         Generates all map tiles from the cropped overlay image using multiprocessing.
         """
         try:
-            src_img = Image.open(f"{self.tmp_dir}/overlay_{self.zoom}_crop.png")
-            src_height = src_img.height
-            src_width = src_img.width
+            with Image.open(f"{self.tmp_dir}/overlay_{self.zoom}_crop.png") as src_img:
+                src_height = src_img.height
+                src_width = src_img.width
+
+                self.logger.info(f"Src Image[{self.zoom}]: {src_width}, {src_height}")
+                tile_size = 256
+
+                x_offset = 0
+                while x_offset < (src_width / tile_size):
+                    self.tile_x_worker(src_img, x_offset)
+                    x_offset += 1
         except DecompressionBombError:
             self.logger.error(f"DecompressionBombError")
             return
-
-        self.logger.info(f"Src Image[{self.zoom}]: {src_width}, {src_height}")
-        tile_size = 256
-
-        x_offset = 0
-        while x_offset < (src_width / tile_size):
-            self.tile_x_worker(src_img, x_offset)
-            x_offset += 1
 
         print("Done alle")
 

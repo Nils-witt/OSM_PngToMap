@@ -58,8 +58,8 @@ def main():
     print("Config loaded:", config)
     create_directories(args.config_dir)
 
-    img = Image.open(args.config_dir / "image.png")
-    imgsize = img.size
+    with Image.open(args.config_dir / "image.png") as img:
+        imgsize = img.size
 
     markers_scaled = {}
     print(config['coordinates'])
