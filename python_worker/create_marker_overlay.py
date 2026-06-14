@@ -12,7 +12,7 @@ import numpy as np
 from PIL import Image
 from PIL.Image import DecompressionBombError
 
-from .utils import deg2num, find_x_bounds, find_y_bounds, tile_empty
+from utils import deg2num, find_x_bounds, find_y_bounds, tile_empty
 
 Image.MAX_IMAGE_PIXELS = None
 
@@ -133,7 +133,7 @@ class GenerateTiles:
 
         h, status = cv2.findHomography(pts_src, pts_dst)
         im_src = cv2.imread(self.overlay_img_path, cv2.IMREAD_UNCHANGED)
-        print("PIXEL:" + str(im_src[0,0]))
+        print("PIXEL:" + str(im_src[0, 0]))
         target_pic_size = self.calulate_target_size()
 
         im_out = cv2.warpPerspective(

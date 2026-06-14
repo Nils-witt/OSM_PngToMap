@@ -4,12 +4,12 @@ tile_calc.py
 This module provides functions for resizing map tiles, creating a canvas image from tiles, and generating an index JSON.
 """
 
+import json
 import os
 
 from PIL import Image
 
-from .utils import num2deg, deg2num
-import json
+from utils import num2deg, deg2num
 
 
 def resize(tile_path: str, target_zoom: int) -> None:
@@ -104,6 +104,7 @@ def create_canvas(data_dir: str, target_zoom: int) -> None:
                     canvas.paste(tile_img, (x_offset, y_offset), tile_img)
     canvas.save(f"{data_dir}/{target_zoom}/canvas.png")
 
+
 def create_index_json(data_dir: str) -> None:
     """
     Generates an index.json file listing all tile coordinates for the given zoom level.
@@ -111,7 +112,6 @@ def create_index_json(data_dir: str) -> None:
     global_index = {
 
     }
-
 
     for zoom_dir in os.listdir(data_dir):
         if not os.path.isdir(f"{data_dir}/{zoom_dir}"):
